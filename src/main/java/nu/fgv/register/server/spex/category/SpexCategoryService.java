@@ -19,33 +19,21 @@ package nu.fgv.register.server.spex.category;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import nu.fgv.register.server.image.Image;
 import nu.fgv.register.server.security.policy.Permission;
 import nu.fgv.register.server.security.policy.PermissionService;
-import nu.fgv.register.server.util.error.InternalErrorException;
-import nu.fgv.register.server.util.error.ResourceNoValueException;
 import nu.fgv.register.server.util.error.ResourceNotFoundException;
 import nu.fgv.register.server.util.filter.FilterParser;
 import nu.fgv.register.server.util.filter.SpecificationsBuilder;
 import nu.fgv.register.server.util.graphql.CountedWindow;
 import nu.fgv.register.server.util.graphql.GraphqlUtil.ScrollRequest;
-import nu.fgv.register.server.util.security.RequiresAdmin;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.jpa.domain.Specification;
-import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 import static nu.fgv.register.server.spex.category.SpexCategoryMapper.SPEX_CATEGORY_MAPPER;
 import static nu.fgv.register.server.spex.category.SpexCategorySpecification.NO_FILTER;
-import static nu.fgv.register.server.spex.category.SpexCategorySpecification.hasIds;
-import static nu.fgv.register.server.util.FileUtil.requireSupportedImageMimeType;
 import static org.springframework.util.StringUtils.hasText;
 
 /**
@@ -89,24 +77,6 @@ public class SpexCategoryService {
     }
 
     /**
-     * The spex categories the caller may read that match the filter, for the REST API.
-     *
-     * @param filter   a filter expression, or blank for all
-     * @param pageable the page to read
-     * @return the page
-     */
-    @RequiresAdminOrEditorOrUser
-    public Page<SpexCategoryDto> find(final String filter, final Pageable pageable) {
-        return hasText(filter) ?
-                repository
-                        .findAll(SpecificationsBuilder.<SpexCategory>builder().build(FilterParser.parse(filter), SpexCategorySpecification::new), pageable, Permission.READ)
-                        .map(SPEX_CATEGORY_MAPPER::toDto) :
-                repository
-                        .findAll(pageable, Permission.READ)
-                        .map(SPEX_CATEGORY_MAPPER::toDto);
-    }
-
-    /**
      * @param id the spex category id
      * @return the spex category
      * @throws nu.fgv.register.server.util.error.ResourceNotFoundException when there is no such spex category
@@ -119,161 +89,4 @@ public class SpexCategoryService {
                 .orElseThrow(() -> new ResourceNotFoundException(SpexCategory.class, id));
     }
 
-    /**
-     * @param id the spex category id
-     * @return whether the spex category exists
-     * @throws org.springframework.security.access.AccessDeniedException when it exists but may not be read
-     */
-    @RequiresAdminOrEditorOrUser
-    public boolean exists(final UUID id) {
-        return repository
-                .findByUuid0(id)
-                .isPresent();
-    }
-
-    /**
-     * The spex categories to export, streamed when iterated, so it must be consumed inside a transaction.
-     *
-     * @param ids    the spex categories to export, or empty to use the filter
-     * @param filter a filter expression when no ids are given, or blank for all
-     * @param sort   the order
-     * @return the spex categories the caller may read
-     */
-    @RequiresAdminOrEditorOrUser
-    public Iterable<SpexCategory> streamByIds(final List<UUID> ids, final String filter, final Sort sort) {
-        return () -> {
-            final Specification<SpexCategory> spec;
-
-            if (!ids.isEmpty()) {
-                spec = hasIds(ids);
-            } else if (hasText(filter)) {
-                spec = SpecificationsBuilder.<SpexCategory>builder()
-                        .build(FilterParser.parse(filter), SpexCategorySpecification::new);
-            } else {
-                spec = null;
-            }
-
-            return repository.streamAll(spec, sort, Permission.READ)
-                    .iterator();
-        };
-    }
-
-    /**
-     * @param dto the new spex category
-     * @return the created spex category
-     */
-    @RequiresAdmin
-    public SpexCategoryDto create(final SpexCategoryCreateDto dto) {
-        return Optional.of(SPEX_CATEGORY_MAPPER.toModel(dto))
-                .map(repository::save)
-                .map(category -> {
-                    return SPEX_CATEGORY_MAPPER.toDto(category);
-                })
-                .orElseThrow(() -> new InternalErrorException("Could not create spex category"));
-    }
-
-    /**
-     * The same as {@link #partialUpdate}.
-     *
-     * @param dto the spex category id and new values
-     * @return the updated spex category
-     */
-    @RequiresAdmin
-    public SpexCategoryDto update(final SpexCategoryUpdateDto dto) {
-        return partialUpdate(dto);
-    }
-
-    /**
-     * Changes the values given; null values are left unchanged.
-     *
-     * @param dto the spex category id and new values
-     * @return the updated spex category
-     * @throws nu.fgv.register.server.util.error.ResourceNotFoundException when there is no such spex category
-     */
-    @RequiresAdmin
-    public SpexCategoryDto partialUpdate(final SpexCategoryUpdateDto dto) {
-        return repository
-                .findByUuid0(dto.id())
-                .map(permissionService::checkWritePermission)
-                .map(category -> {
-                    SPEX_CATEGORY_MAPPER.toPartialModel(dto, category);
-                    return category;
-                })
-                .map(repository::save)
-                .map(SPEX_CATEGORY_MAPPER::toDto)
-                .orElseThrow(() -> new ResourceNotFoundException(SpexCategory.class, dto.id()));
-    }
-
-    /**
-     * @param id the spex category id
-     * @throws nu.fgv.register.server.util.error.ResourceNotFoundException when there is no such spex category
-     */
-    @RequiresAdmin
-    public void deleteById(final UUID id) {
-        if (doesSpexCategoryExist(id)) {
-            repository.findByUuid0(id)
-                    .map(permissionService::checkDeletePermission)
-                    .ifPresent(category -> {
-                        repository.delete(category);
-                    });
-        } else {
-            throw new ResourceNotFoundException(SpexCategory.class, id);
-        }
-    }
-
-    /**
-     * @param id   the category id
-     * @param logo a PNG, JPEG, GIF or SVG image
-     * @return the category
-     */
-    @RequiresAdmin
-    public SpexCategoryDto saveLogo(final UUID id, final byte[] logo) {
-        return repository
-                .findByUuid0(id)
-                .map(permissionService::checkWritePermission)
-                .map(category -> {
-                    category.setLogo(Image.of(logo, requireSupportedImageMimeType(logo)));
-                    repository.save(category);
-                    return SPEX_CATEGORY_MAPPER.toDto(category);
-                })
-                .orElseThrow(() -> new ResourceNotFoundException(SpexCategory.class, id));
-    }
-
-    /**
-     * @param id the category id
-     * @return the category
-     */
-    @RequiresAdmin
-    public SpexCategoryDto deleteLogo(final UUID id) {
-        return repository
-                .findByUuid0(id)
-                .map(permissionService::checkWritePermission)
-                .map(category -> {
-                    category.setLogo(null);
-                    repository.save(category);
-                    return SPEX_CATEGORY_MAPPER.toDto(category);
-                })
-                .orElseThrow(() -> new ResourceNotFoundException(SpexCategory.class, id));
-    }
-
-    /**
-     * @param id the category id
-     * @return the logo's bytes and content type
-     * @throws nu.fgv.register.server.util.error.ResourceNoValueException when the category has no logo
-     */
-    @RequiresAdminOrEditorOrUser
-    public Pair<byte[], String> getLogo(final UUID id) {
-        if (!doesSpexCategoryExist(id)) {
-            throw new ResourceNotFoundException(SpexCategory.class, id);
-        }
-        return repository
-                .findByUuid0(id)
-                .map(SpexCategory::getLogo)
-                .map(logo -> Pair.of(logo.getData(), logo.getContentType()))
-                .orElseThrow(() -> new ResourceNoValueException(SpexCategory.class, SpexCategory_.LOGO, id));
-    }
-
-    private boolean doesSpexCategoryExist(final UUID id) {
-        return repository.findByUuid0(id).isPresent();
-    }
 }

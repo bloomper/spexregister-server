@@ -46,15 +46,21 @@ spexregister:
       client-id: fgv-admin
       client-secret: YGXDSS5oiZFf4fnTWfX4LImOToPlVOhF
     client:
-      client-id: spexregister
+      client-id: fgv-spexregister
       client-secret: ip8dFYgp03sVytrrEeXgwHIgHAMtE350
   security:
-    authorized-parties: spexregister,fgv-revival-service
+    authorized-parties: fgv-spexregister,fgv-revival-service,fgv-spexipedia-service
   mcp:
-    authorized-parties: spexregister-mcp,spexregister-mcp-unbound
+    authorized-parties: fgv-spexregister-mcp,fgv-spexregister-mcp-unbound
   impex:
     storage-path: ./integrationtest-data/impex_data
   data:
-    sample-user-password: s3cr3t-s3cr3t
     seed-audit-data: false
     import-sample-data: false
+
+# Base data comes from Spexipedia: tests make it through the sync's own apply step (BaseDataFixtures), and the sync
+# tests stub the feed; no scheduled pulls
+spexregister.spexipedia:
+  enabled: false
+  graphql-url: http://localhost:1/api/graphql
+  web-url: https://spexipedia.test

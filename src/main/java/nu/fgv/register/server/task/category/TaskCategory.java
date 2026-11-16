@@ -24,7 +24,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
-import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -71,12 +70,14 @@ public class TaskCategory extends AbstractAuditable implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    /**
+     * Spexipedia's id, set by the sync.
+     */
     @Column(name = "uuid", nullable = false, updatable = false, unique = true, length = 36)
-    @Setter(AccessLevel.NONE)
     private UUID uuid = Uuids.v7();
 
     @NotBlank(message = "{taskCategory.name.notEmpty}")
-    @Size(max = 255, message = "{taskCategory.name.maxSize}")
+    @Size(max = 255, message = "{taskCategory.name.size}")
     @Column(name = "name", nullable = false)
     @KeywordField(searchable = Searchable.YES, normalizer = NORMALIZER_LOWERCASE)
     @PropertyBinding(binder = @PropertyBinderRef(type = HierarchicalPropertyBinder.class))
@@ -84,6 +85,18 @@ public class TaskCategory extends AbstractAuditable implements Serializable {
 
     @Column(name = "actor_present")
     private Boolean actorPresent;
+
+    /**
+     * Retired in Spexipedia: readable, but not offered for new activities.
+     */
+    @Column(name = "retired", nullable = false)
+    private boolean retired;
+
+    /**
+     * Whether Spexipedia shows its tasks as the board of a spex.
+     */
+    @Column(name = "board", nullable = false)
+    private boolean board;
 
     @Override
     public boolean equals(final @Nullable Object o) {

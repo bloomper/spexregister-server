@@ -37,6 +37,8 @@ extend type Mutation {
     userSpexareAdd(userId: ID!, id: ID!): Void
     "ADMIN. Unlinks the user from their spexare."
     userSpexareRemove(userId: ID!): Void
+    "ADMIN. Turns automatic linking by email on or off for the user."
+    userSpexareAutoLinkSet(userId: ID!, enabled: Boolean!): Void
 }
 
 "A Keycloak account known to Spexregister."
@@ -51,6 +53,11 @@ type User {
     authorities: [Authority]
     state: State
     spexare: Spexare
+    """
+    Whether the user is linked to a spexare automatically: the spexare whose address has the user's verified email, when
+    exactly one without a user has it. Turned off when an admin removes the link by hand.
+    """
+    spexareAutoLink: Boolean!
     createdBy: String!
     createdAt: Instant!
     lastModifiedBy: String

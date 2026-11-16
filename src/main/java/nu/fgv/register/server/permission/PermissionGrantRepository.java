@@ -52,7 +52,5 @@ public interface PermissionGrantRepository extends JpaRepository<PermissionGrant
 
     List<PermissionGrant> findBySpexareId(Long spexareId);
 
-    List<PermissionGrant> findBySpexId(Long spexId);
-
     List<PermissionGrant> findByUserId(Long userId);
 }

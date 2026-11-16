@@ -16,10 +16,16 @@
 
 package nu.fgv.register.server.spexare;
 
+import nu.fgv.register.server.impex.importing.ImportEngine;
+import nu.fgv.register.server.impex.importing.ImportEngineResponse;
 import nu.fgv.register.server.impex.model.ImpexAction;
+import nu.fgv.register.server.impex.model.ImpexType;
 import nu.fgv.register.server.impex.model.ImportResultDto;
+import nu.fgv.register.server.impex.model.excel.ExcelSheet;
 import nu.fgv.register.server.settings.CountryService;
 import nu.fgv.register.server.settings.TypeService;
+import nu.fgv.register.server.spex.SpexImpexDto;
+import nu.fgv.register.server.spex.SpexRevivalImpexDto;
 import nu.fgv.register.server.spex.SpexService;
 import nu.fgv.register.server.spexare.activity.ActivityDto;
 import nu.fgv.register.server.spexare.activity.ActivityImpexDto;
@@ -37,12 +43,16 @@ import nu.fgv.register.server.spexare.tagging.TaggingImpexDto;
 import nu.fgv.register.server.spexare.tagging.TaggingService;
 import nu.fgv.register.server.spexare.toggle.ToggleService;
 import nu.fgv.register.server.tag.TagService;
+import nu.fgv.register.server.task.TaskImpexDto;
 import nu.fgv.register.server.task.TaskService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.context.MessageSource;
+import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.context.support.StaticMessageSource;
 import org.springframework.transaction.PlatformTransactionManager;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -51,10 +61,16 @@ import java.util.UUID;
 
 import static nu.fgv.register.server.util.TestUuids.uuid;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.startsWith;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -125,16 +141,47 @@ class SpexareImportServiceTest {
         return service.processImport(data, Locale.ENGLISH);
     }
 
+    private SpexareImportService serviceWith(final List<ImportEngine> engines, final MessageSource messages) {
+        return new SpexareImportService(engines, spexareService, addressService, mock(ConsentService.class), mock(MembershipService.class),
+                mock(ToggleService.class), activityService, spexActivityService, taskActivityService, actorService, mock(TagService.class),
+                taggingService, mock(SpexService.class), mock(TaskService.class), mock(TypeService.class), mock(CountryService.class),
+                messages, mock(PlatformTransactionManager.class), "https://register.example.com");
+    }
+
+    /**
+     * An import of a file with these sheets, which reads one new spexare, with the application's own messages.
+     */
+    private ImportResultDto importSheets(final Locale locale, final String... sheetNames) {
+        final ImportEngine engine = mock(ImportEngine.class);
+        final ResourceBundleMessageSource messages = new ResourceBundleMessageSource();
+
+        messages.setBasename("messages");
+        messages.setDefaultEncoding(StandardCharsets.UTF_8.name());
+        messages.setFallbackToSystemLocale(false);
+        when(engine.supports(ImpexType.EXCEL)).thenReturn(true);
+        when(engine.process(any(), anyList(), eq(locale))).thenReturn(new ImportEngineResponse(
+                ImportResultDto.builder().success(true).messages(List.of()).build(),
+                Map.of(SpexareImpexDto.class, List.of(spexare(uuid(1001), ImpexAction.CREATE, 2))),
+                List.of(sheetNames)));
+
+        return serviceWith(List.of(engine), messages).doImport(new byte[0], ImpexType.EXCEL, locale);
+    }
+
+    private static String sheetOf(final Class<?> type, final Locale locale) {
+        final ResourceBundleMessageSource messages = new ResourceBundleMessageSource();
+
+        messages.setBasename("messages");
+        messages.setDefaultEncoding(StandardCharsets.UTF_8.name());
+        return messages.getMessage(type.getAnnotation(ExcelSheet.class).name(), null, locale);
+    }
+
     @BeforeEach
     void setUp() {
         final StaticMessageSource messages = new StaticMessageSource();
 
         messages.setUseCodeAsDefaultMessage(true);
         messages.addMessage("common.impex.summary.error", Locale.ENGLISH, "Row {0}, {1}: {2}");
-        service = new SpexareImportService(List.of(), spexareService, addressService, mock(ConsentService.class), mock(MembershipService.class),
-                mock(ToggleService.class), activityService, spexActivityService, taskActivityService, actorService, mock(TagService.class),
-                taggingService, mock(SpexService.class), mock(TaskService.class), mock(TypeService.class), mock(CountryService.class),
-                messages, mock(PlatformTransactionManager.class), "https://register.example.com");
+        service = serviceWith(List.of(), messages);
         when(spexareService.create(any())).thenReturn(SpexareDto.builder().id(uuid(101)).build());
         when(spexareService.partialUpdate(any())).thenAnswer(invocation -> SpexareDto.builder().id(((SpexareUpdateDto) invocation.getArgument(0)).id()).build());
         when(spexareService.findPartnerBySpexare(any(UUID.class))).thenReturn(Optional.empty());
@@ -246,5 +293,38 @@ class SpexareImportServiceTest {
 
         assertThat(result.getErrors(), hasSize(1));
         assertThat(result.getErrors().getFirst().startsWith("Row 7, "), is(true));
+    }
+
+    @Test
+    void should_import_a_file_with_the_lookup_sheets_of_the_export_and_say_they_were_left_alone() {
+        final Locale swedish = Locale.of("sv");
+        final ImportResultDto result = importSheets(swedish, sheetOf(SpexareImpexDto.class, swedish),
+                sheetOf(SpexImpexDto.class, swedish), sheetOf(SpexRevivalImpexDto.class, swedish), sheetOf(TaskImpexDto.class, swedish));
+
+        assertThat(result.isSuccess(), is(true));
+        assertThat(result.getMessages(), hasItems(
+                startsWith("Bladet 'Spex' importerades inte"),
+                startsWith("Bladet 'Nyuppsättningar' importerades inte"),
+                startsWith("Bladet 'Funktioner' importerades inte")));
+        verify(spexareService).create(any());
+    }
+
+    @Test
+    void should_refuse_a_file_with_a_sheet_of_spex_or_task_categories_in_either_language() {
+        final ImportResultDto result = importSheets(Locale.ENGLISH, "Spexare", "Spexkategorier", "Task categories");
+
+        assertThat(result.isSuccess(), is(false));
+        assertThat(result.getMessages(), hasItems(
+                startsWith("Nothing was imported, because of sheet 'Spexkategorier'"),
+                startsWith("Nothing was imported, because of sheet 'Task categories'")));
+        verify(spexareService, never()).create(any());
+    }
+
+    @Test
+    void should_say_nothing_about_sheets_that_are_not_base_data() {
+        final ImportResultDto result = importSheets(Locale.ENGLISH, "Spexare", "Tags");
+
+        assertThat(result.isSuccess(), is(true));
+        assertThat(result.getMessages(), not(hasItem(containsString("Spexipedia"))));
     }
 }

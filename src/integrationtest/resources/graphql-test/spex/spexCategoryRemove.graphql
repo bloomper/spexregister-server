@@ -1,3 +1,0 @@
-mutation spexCategoryRemove ($spexId: ID!) {
-    spexCategoryRemove(spexId: $spexId)
-}

@@ -16,33 +16,20 @@
 
 package nu.fgv.register.server.spex;
 
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import nu.fgv.register.server.impex.JobService;
-import nu.fgv.register.server.impex.model.ImpexType;
-import nu.fgv.register.server.impex.model.JobReferenceDto;
 import nu.fgv.register.server.spex.category.SpexCategoryDto;
 import nu.fgv.register.server.util.graphql.CountedWindow;
-import nu.fgv.register.server.util.security.RequiresAdmin;
-import nu.fgv.register.server.util.security.RequiresAdminOrEditor;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
-import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUserOrMedia;
-import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUserOrRevival;
 import nu.fgv.register.server.util.security.RequiresSpexReader;
-import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Sort;
 import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.BatchMapping;
-import org.springframework.graphql.data.method.annotation.MutationMapping;
 import org.springframework.graphql.data.method.annotation.QueryMapping;
-import org.springframework.graphql.data.method.annotation.SchemaMapping;
 import org.springframework.graphql.data.query.ScrollSubrange;
 import org.springframework.stereotype.Controller;
 
-import java.util.Collections;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -52,7 +39,8 @@ import java.util.stream.Collectors;
 import static nu.fgv.register.server.util.graphql.GraphqlUtil.extractScrollRequest;
 
 /**
- * The {@code Spex} queries and mutations and the fields that need loading, batched where a list is resolved.
+ * The {@code Spex} queries and the fields that need loading, batched where a list is resolved. Read only: Spexipedia
+ * keeps the spex and the sync writes the copy here.
  *
  * @author Anders Jacobsson
  * @since 2.0
@@ -63,7 +51,6 @@ import static nu.fgv.register.server.util.graphql.GraphqlUtil.extractScrollReque
 public class SpexGraphqlApi {
 
     private final SpexService service;
-    private final JobService jobService;
 
     private static List<UUID> ids(final List<SpexDto> dtos) {
         return dtos.stream().map(SpexDto::getId).distinct().toList();
@@ -75,58 +62,20 @@ public class SpexGraphqlApi {
         return service.find(filter.orElse(""), extractScrollRequest(subrange), sort.orElse(Sort.unsorted()));
     }
 
-    @QueryMapping("spexExport")
-    @RequiresAdminOrEditor
-    public JobReferenceDto export(@Nullable @Argument final List<UUID> ids, @Nullable @Argument final String filter, @Argument final ImpexType type, final Locale locale) {
-        return JobReferenceDto.builder()
-                .id(jobService.createExportJob(SpexExportService.class, Optional.ofNullable(ids).orElse(Collections.emptyList()), Optional.ofNullable(filter).orElse(""), type, locale))
-                .build();
-    }
-
-    @MutationMapping("spexCreate")
-    @RequiresAdmin
-    public SpexDto create(@Valid @Argument final SpexCreateDto input) {
-        return service.create(input);
-    }
-
     @QueryMapping("spex")
     @RequiresSpexReader
     public SpexDto retrieve(@Argument final UUID id) {
         return service.findById(id);
     }
 
-    @MutationMapping("spexUpdate")
-    @RequiresAdminOrEditorOrUser
-    public SpexDto update(@Valid @Argument final SpexUpdateDto input) {
-        return service.update(input);
-    }
-
-    @MutationMapping("spexDelete")
-    @RequiresAdmin
-    public void delete(@Argument final UUID id) {
-        service.deleteById(id);
-    }
-
-    @MutationMapping("spexPosterDelete")
-    @RequiresAdminOrEditorOrUser
-    public void deletePoster(@Argument final UUID id) {
-        service.deletePoster(id);
-    }
-
     @BatchMapping(typeName = "Spex", field = "parent")
-    @RequiresAdminOrEditorOrUserOrMedia
+    @RequiresAdminOrEditorOrUser
     public Map<SpexDto, SpexDto> retrieveParents(final List<SpexDto> dtos) {
         final Map<UUID, SpexDto> parents = service.findParentsBySpex(ids(dtos));
 
         return dtos.stream()
                 .filter(dto -> parents.containsKey(dto.getId()))
                 .collect(Collectors.toMap(Function.identity(), dto -> parents.get(dto.getId()), (a, _) -> a));
-    }
-
-    @SchemaMapping(typeName = "Spex", field = "revivalsPaged")
-    @RequiresSpexReader
-    public CountedWindow<SpexDto> retrieveRevivalsByParent(final SpexDto dto, final ScrollSubrange subrange, final Optional<Sort> sort) {
-        return service.findRevivalsByParent(dto.getId(), extractScrollRequest(subrange), sort.orElse(Sort.unsorted()));
     }
 
     @BatchMapping(typeName = "Spex", field = "revivals")
@@ -138,26 +87,8 @@ public class SpexGraphqlApi {
                 .collect(Collectors.toMap(Function.identity(), dto -> revivals.getOrDefault(dto.getId(), List.of()), (a, _) -> a));
     }
 
-    @QueryMapping("spexRevival")
-    @RequiresSpexReader
-    public SpexDto retrieveRevival(@Argument final UUID spexId, @Argument final UUID id) {
-        return service.findRevivalById(spexId, id);
-    }
-
-    @MutationMapping("spexRevivalCreate")
-    @RequiresAdminOrEditorOrUserOrRevival
-    public SpexDto createRevival(@Argument final UUID spexId, @Argument final String year) {
-        return service.addRevival(spexId, year);
-    }
-
-    @MutationMapping("spexRevivalDelete")
-    @RequiresAdminOrEditorOrUser
-    public void deleteRevival(@Argument final UUID spexId, @Argument final UUID id) {
-        service.deleteRevival(spexId, id);
-    }
-
     @BatchMapping(typeName = "Spex", field = "category")
-    @RequiresAdminOrEditorOrUserOrMedia
+    @RequiresAdminOrEditorOrUser
     public Map<SpexDto, SpexCategoryDto> retrieveCategories(final List<SpexDto> dtos) {
         final Map<UUID, SpexCategoryDto> categories = service.findCategoriesBySpex(ids(dtos));
 
@@ -166,15 +97,4 @@ public class SpexGraphqlApi {
                 .collect(Collectors.toMap(Function.identity(), dto -> categories.get(dto.getId()), (a, _) -> a));
     }
 
-    @MutationMapping("spexCategoryAdd")
-    @RequiresAdmin
-    public void addCategory(@Argument final UUID spexId, @Argument final UUID id) {
-        service.addCategory(spexId, id);
-    }
-
-    @MutationMapping("spexCategoryRemove")
-    @RequiresAdmin
-    public void removeCategory(@Argument final UUID spexId) {
-        service.removeCategory(spexId);
-    }
 }

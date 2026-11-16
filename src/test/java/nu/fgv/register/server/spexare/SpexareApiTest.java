@@ -19,7 +19,6 @@ package nu.fgv.register.server.spexare;
 import nu.fgv.register.server.audit.AuditPurgeService;
 import nu.fgv.register.server.impex.JobService;
 import nu.fgv.register.server.impex.model.ImpexType;
-import nu.fgv.register.server.spex.SpexUpdateDto;
 import nu.fgv.register.server.util.AbstractApiTest;
 import nu.fgv.register.server.util.search.Facet;
 import nu.fgv.register.server.util.search.FacetGroup;
@@ -515,7 +514,7 @@ class SpexareApiTest extends AbstractApiTest {
 
     @Test
     void should_partial_update() throws Exception {
-        final var fields = new ConstrainedFields(SpexUpdateDto.class);
+        final var fields = new ConstrainedFields(SpexareUpdateDto.class);
         final var spexare = SpexareDto.builder().id(uuid(1)).firstName("FirstName").lastName("LastName").build();
         final var dto = SpexareUpdateDto.builder().id(uuid(1)).firstName("FirstName").lastName("LastName").nickName("NickName").deceased(false).published(true).build();
 
@@ -562,7 +561,7 @@ class SpexareApiTest extends AbstractApiTest {
     }
 
     @Test
-    @WithMockUser(roles = "spexregister_ADMIN")
+    @WithMockUser(roles = "fgv-spexregister_ADMIN")
     void should_delete() throws Exception {
         final var spexare = SpexareDto.builder().id(uuid(1)).firstName("FirstName").lastName("LastName").build();
 
@@ -597,7 +596,7 @@ class SpexareApiTest extends AbstractApiTest {
     }
 
     @Test
-    @WithMockUser(roles = "spexregister_EDITOR")
+    @WithMockUser(roles = "fgv-spexregister_EDITOR")
     void should_not_delete_when_purging_without_admin() throws Exception {
         mockMvc
                 .perform(

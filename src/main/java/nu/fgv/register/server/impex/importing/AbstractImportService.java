@@ -98,12 +98,19 @@ public abstract class AbstractImportService {
 
         try {
             final ImportEngineResponse response = engine.process(file, specs, locale);
+            final List<SheetRefusal> refusals = refuseSheets(response.sheetNames(), locale);
+            final List<String> refused = refusals.stream().filter(SheetRefusal::fatal).map(SheetRefusal::message).toList();
+            final List<String> ignored = refusals.stream().filter(refusal -> !refusal.fatal()).map(SheetRefusal::message).toList();
 
-            if (response.validationResult().isSuccess() && response.data() != null) {
-                return processImport(response.data(), locale);
+            if (!refused.isEmpty()) {
+                return withMessages(response.validationResult(), refused, false);
             }
 
-            return response.validationResult();
+            if (response.validationResult().isSuccess() && response.data() != null) {
+                return withMessages(processImport(response.data(), locale), ignored, true);
+            }
+
+            return withMessages(response.validationResult(), ignored, true);
         } catch (final Exception e) {
             log.error("Unexpected error while importing", e);
             throw new ImportException(e.getMessage());
@@ -114,6 +121,47 @@ public abstract class AbstractImportService {
      * @return the sheets the file may have
      */
     protected abstract List<ImportSpec> getImportSpecs();
+
+    /**
+     * Sheets that no spec names are otherwise ignored; a service names those it knows of and will not import, so the
+     * person importing is told rather than left to think they were.
+     *
+     * @param sheetNames every sheet in the file
+     * @param locale     the language of the messages
+     * @return why each such sheet is not imported, and whether that refuses the whole file
+     */
+    protected List<SheetRefusal> refuseSheets(final List<String> sheetNames, final Locale locale) {
+        return List.of();
+    }
+
+    private static ImportResultDto withMessages(final ImportResultDto result, final List<String> messages, final boolean keepSuccess) {
+        if (messages.isEmpty()) {
+            return result;
+        }
+
+        final List<String> combined = new ArrayList<>(messages);
+
+        if (result.getMessages() != null) {
+            combined.addAll(result.getMessages());
+        }
+
+        return ImportResultDto.builder()
+                .success(keepSuccess && result.isSuccess())
+                .errors(result.getErrors())
+                .messages(List.copyOf(combined))
+                .data(result.getData())
+                .build();
+    }
+
+    /**
+     * A sheet that is not imported.
+     *
+     * @param message why, in the language of the import
+     * @param fatal   whether nothing in the file is imported because of it; otherwise the rest is imported and this is a
+     *                warning
+     */
+    public record SheetRefusal(String message, boolean fatal) {
+    }
 
     /**
      * @param data   the rows read, by row type

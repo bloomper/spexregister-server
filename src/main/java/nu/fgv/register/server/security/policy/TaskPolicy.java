@@ -22,10 +22,12 @@ import org.springframework.stereotype.Component;
 import static nu.fgv.register.server.security.policy.Caller.ADMIN;
 import static nu.fgv.register.server.security.policy.Caller.EDITOR;
 import static nu.fgv.register.server.security.policy.Caller.REVIVAL;
+import static nu.fgv.register.server.security.policy.Caller.SPEXIPEDIA;
 import static nu.fgv.register.server.security.policy.Caller.USER;
 
 /**
- * Every role reads tasks, editors change them and administrators administer them.
+ * Every role reads tasks, Spexipedia included; nobody changes them. Read only: Spexipedia keeps base data, and
+ * Spexregister's copy is written only by the sync.
  *
  * @author Anders Jacobsson
  * @since 2.0
@@ -35,9 +37,7 @@ public class TaskPolicy extends ReferenceDataPolicy<Task> {
 
     public TaskPolicy() {
         super(Task.class, RoleRules.builder()
-                .read(USER, EDITOR, ADMIN, REVIVAL)
-                .write(EDITOR)
-                .administer(ADMIN)
+                .read(USER, EDITOR, ADMIN, REVIVAL, SPEXIPEDIA)
                 .build());
     }
 }

@@ -2,6 +2,10 @@
 
 xref:../api-guide.adoc[Back to API guide]
 
+Spex, spex details, spex categories, tasks and task categories are base data kept in Spexipedia, which has their history.
+Their changes are still recorded here, so a spexare's history shows what their activities pointed at, but they have no history of their own: asking for their revisions, or restoring them, is a bad request.
+The revision feed leaves out revisions that changed nothing else, and cannot be narrowed to one of these types.
+
 [[revisions_get]]
 == Get revisions for an entity
 

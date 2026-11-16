@@ -27,6 +27,8 @@ import nu.fgv.register.server.impex.model.excel.ExcelSheet;
 import java.util.UUID;
 
 /**
+ * A row of the read-only lookup sheet of revivals in the spexare export. Never imported: Spexipedia keeps them.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */

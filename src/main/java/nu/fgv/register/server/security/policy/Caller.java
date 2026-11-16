@@ -29,7 +29,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * Who is calling: the Spexregister roles from the Keycloak token, without the {@code ROLE_spexregister_} prefix, and
+ * Who is calling: the Spexregister roles from the Keycloak token, without the {@code ROLE_fgv-spexregister_} prefix, and
  * the token's subject, which links the caller to their {@link nu.fgv.register.server.user.User}.
  *
  * @param roles   the caller's Spexregister roles, such as {@value #ADMIN}
@@ -43,8 +43,9 @@ public record Caller(Set<String> roles, @Nullable String subject) {
     public static final String EDITOR = "EDITOR";
     public static final String USER = "USER";
     public static final String REVIVAL = "REVIVAL";
-    public static final String MEDIA = "MEDIA";
-    private static final String ROLE_PREFIX = "ROLE_spexregister_";
+    public static final String SPEXIPEDIA = "SPEXIPEDIA";
+    public static final String NOTIFY = "NOTIFY";
+    private static final String ROLE_PREFIX = "ROLE_fgv-spexregister_";
     private static final Caller NOBODY = new Caller(Set.of(), null);
 
     /**

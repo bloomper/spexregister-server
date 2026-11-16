@@ -179,8 +179,8 @@ class PermissionGrantGraphqlApiIntegrationTest extends AbstractGraphqlIntegratio
         for (final Map<String, Object> input : new Map[]{
                 Map.of("userId", grantee.getUuid(), "role", "USER", "permission", "READ", "scope", "SPEXARE", "spexareId", spexare.getUuid()),
                 Map.of("permission", "READ", "scope", "SPEXARE", "spexareId", spexare.getUuid()),
-                Map.of("role", "REVIVAL", "permission", "READ", "scope", "SPEX", "spexId", spex.getUuid()),
-                Map.of("userId", grantee.getUuid(), "permission", "READ", "scope", "SPEX", "spexareId", spexare.getUuid()),
+                Map.of("role", "REVIVAL", "permission", "READ", "scope", "SPEX_PARTICIPANTS", "spexId", spex.getUuid()),
+                Map.of("userId", grantee.getUuid(), "permission", "READ", "scope", "SPEX_PARTICIPANTS", "spexareId", spexare.getUuid()),
                 Map.of("userId", grantee.getUuid(), "permission", "READ", "scope", "SPEXARE", "spexareId", spexare.getUuid(),
                         "validUntil", LocalDate.now().minusDays(1).toString())
         }) {
@@ -237,20 +237,6 @@ class PermissionGrantGraphqlApiIntegrationTest extends AbstractGraphqlIntegratio
         updateSpexare(spexare, false);
     }
 
-    @Test
-    void should_let_a_user_edit_a_spex_but_not_delete_it() {
-        grant(Permission.WRITE, PermissionGrantScope.SPEX, null, spex, null);
-
-        as(obtainUserAccessToken())
-                .document("mutation u($id: ID!) { spexUpdate(input: { id: $id, year: \"1956\", title: \"Ali Baba och de fyrtio rövarna\" }) { title } }")
-                .variable("id", spex.getUuid()).execute().errors().verify()
-                .path("spexUpdate.title").entity(String.class).isEqualTo("Ali Baba och de fyrtio rövarna");
-
-        as(obtainUserAccessToken())
-                .document("mutation d($id: ID!) { spexDelete(id: $id) }")
-                .variable("id", spex.getUuid()).execute().errors()
-                .satisfy(errors -> assertThat(errors).anyMatch(this::isForbidden));
-    }
 
     @Test
     void should_keep_the_personal_identity_number_hidden_from_a_grantee() {

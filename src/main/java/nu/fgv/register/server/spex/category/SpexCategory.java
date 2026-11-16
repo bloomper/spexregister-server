@@ -16,26 +16,19 @@
 
 package nu.fgv.register.server.spex.category;
 
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
-import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-import nu.fgv.register.server.audit.AuditedBinary;
-import nu.fgv.register.server.image.Image;
 import nu.fgv.register.server.util.AbstractAuditable;
 import nu.fgv.register.server.util.Uuids;
 import nu.fgv.register.server.util.search.HierarchicalPropertyBinder;
@@ -78,29 +71,36 @@ public class SpexCategory extends AbstractAuditable implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    /**
+     * Spexipedia's id, set by the sync.
+     */
     @Column(name = "uuid", nullable = false, updatable = false, unique = true, length = 36)
-    @Setter(AccessLevel.NONE)
     private UUID uuid = Uuids.v7();
 
     @NotBlank(message = "{spexCategory.name.notEmpty}")
-    @Size(max = 255, message = "{spexCategory.name.maxSize}")
+    @Size(max = 255, message = "{spexCategory.name.size}")
     @Column(name = "name", nullable = false)
     @KeywordField(searchable = Searchable.YES, normalizer = NORMALIZER_LOWERCASE)
     @PropertyBinding(binder = @PropertyBinderRef(type = HierarchicalPropertyBinder.class))
     private String name;
 
     @NotBlank(message = "{spexCategory.firstYear.notEmpty}")
-    @Size(max = 4, message = "{spexCategory.firstYear.maxSize}")
+    @Size(max = 4, message = "{spexCategory.firstYear.size}")
     @Pattern(regexp = "^(19|20|21)\\d{2}$", message = "{spexCategory.firstYear.regexp}")
     @Column(name = "first_year", length = 4, nullable = false)
     private String firstYear;
 
-    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "logo_id")
-    @AuditedBinary
-    @ToString.Exclude
-    @Nullable
-    private Image logo;
+    /**
+     * Spexipedia's public address of the logo.
+     */
+    @Column(name = "logo_url")
+    private String logoUrl;
+
+    /**
+     * Retired in Spexipedia: readable, but not offered for new activities.
+     */
+    @Column(name = "retired", nullable = false)
+    private boolean retired;
 
     @Override
     public boolean equals(final @Nullable Object o) {

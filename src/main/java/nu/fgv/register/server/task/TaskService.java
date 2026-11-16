@@ -21,29 +21,20 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nu.fgv.register.server.security.policy.Permission;
 import nu.fgv.register.server.security.policy.PermissionService;
-import nu.fgv.register.server.task.category.TaskCategory;
 import nu.fgv.register.server.task.category.TaskCategoryDto;
-import nu.fgv.register.server.task.category.TaskCategoryRepository;
-import nu.fgv.register.server.util.error.InternalErrorException;
 import nu.fgv.register.server.util.error.ResourceNoValueException;
 import nu.fgv.register.server.util.error.ResourceNotFoundException;
-import nu.fgv.register.server.util.error.ResourcesNotFoundException;
 import nu.fgv.register.server.util.filter.FilterParser;
 import nu.fgv.register.server.util.filter.SpecificationsBuilder;
 import nu.fgv.register.server.util.graphql.CountedWindow;
 import nu.fgv.register.server.util.graphql.GraphqlUtil.ScrollRequest;
-import nu.fgv.register.server.util.security.RequiresAdmin;
-import nu.fgv.register.server.util.security.RequiresAdminOrEditor;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
 import nu.fgv.register.server.util.security.RequiresReferenceDataReader;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 import static nu.fgv.register.server.task.TaskMapper.TASK_MAPPER;
@@ -65,7 +56,6 @@ import static org.springframework.util.StringUtils.hasText;
 public class TaskService {
 
     private final TaskRepository repository;
-    private final TaskCategoryRepository categoryRepository;
     private final PermissionService permissionService;
 
     /**
@@ -91,24 +81,6 @@ public class TaskService {
                                     .scroll(scroll.positionFor(total))
                                     .map(TASK_MAPPER::toDto), total);
                         });
-    }
-
-    /**
-     * The tasks the caller may read that match the filter, for the REST API.
-     *
-     * @param filter   a filter expression, or blank for all
-     * @param pageable the page to read
-     * @return the page
-     */
-    @RequiresAdminOrEditorOrUser
-    public Page<TaskDto> find(final String filter, final Pageable pageable) {
-        return hasText(filter) ?
-                repository
-                        .findAll(SpecificationsBuilder.<Task>builder().build(FilterParser.parse(filter), TaskSpecification::new), pageable, Permission.READ)
-                        .map(TASK_MAPPER::toDto) :
-                repository
-                        .findAll(pageable, Permission.READ)
-                        .map(TASK_MAPPER::toDto);
     }
 
     /**
@@ -164,70 +136,6 @@ public class TaskService {
     }
 
     /**
-     * @param dto the new task
-     * @return the created task
-     */
-    @RequiresAdmin
-    public TaskDto create(final TaskCreateDto dto) {
-        return Optional.of(TASK_MAPPER.toModel(dto))
-                .map(model -> {
-                    final Task task = repository.save(model);
-
-                    return TASK_MAPPER.toDto(task);
-                })
-                .orElseThrow(() -> new InternalErrorException("Could not create task"));
-    }
-
-    /**
-     * The same as {@link #partialUpdate}.
-     *
-     * @param dto the task id and new values
-     * @return the updated task
-     */
-    @RequiresAdminOrEditor
-    public TaskDto update(final TaskUpdateDto dto) {
-        return partialUpdate(dto);
-    }
-
-    /**
-     * Changes the values given; null values are left unchanged.
-     *
-     * @param dto the task id and new values
-     * @return the updated task
-     * @throws nu.fgv.register.server.util.error.ResourceNotFoundException when there is no such task
-     */
-    @RequiresAdminOrEditor
-    public TaskDto partialUpdate(final TaskUpdateDto dto) {
-        return repository
-                .findByUuid0(dto.id())
-                .map(permissionService::checkWritePermission)
-                .map(task -> {
-                    TASK_MAPPER.toPartialModel(dto, task);
-                    return task;
-                })
-                .map(repository::save)
-                .map(TASK_MAPPER::toDto)
-                .orElseThrow(() -> new ResourceNotFoundException(Task.class, dto.id()));
-    }
-
-    /**
-     * @param id the task id
-     * @throws nu.fgv.register.server.util.error.ResourceNotFoundException when there is no such task
-     */
-    @RequiresAdmin
-    public void deleteById(final UUID id) {
-        if (doesTaskExist(id)) {
-            repository.findByUuid0(id)
-                    .map(permissionService::checkDeletePermission)
-                    .ifPresent(task -> {
-                        repository.delete(task);
-                    });
-        } else {
-            throw new ResourceNotFoundException(Task.class, id);
-        }
-    }
-
-    /**
      * @param id the task id
      * @return the task's category
      * @throws nu.fgv.register.server.util.error.ResourceNoValueException when the task has no category
@@ -246,56 +154,8 @@ public class TaskService {
         }
     }
 
-    /**
-     * Puts the task in the category.
-     *
-     * @param taskId the task id
-     * @param id     the category id
-     */
-    @RequiresAdmin
-    public void addCategory(final UUID taskId, final UUID id) {
-        if (doTaskAndCategoryExist(taskId, id)) {
-            repository
-                    .findByUuid0(taskId)
-                    .map(permissionService::checkWritePermission)
-                    .ifPresent(task -> categoryRepository
-                            .findByUuid(id)
-                            .ifPresent(category -> {
-                                task.setCategory(category);
-                                repository.save(task);
-                            })
-                    );
-        } else {
-            throw new ResourcesNotFoundException(List.of(Task.class, TaskCategory.class), taskId, id);
-        }
-    }
-
-    /**
-     * Takes the task out of its category.
-     *
-     * @param id the task id
-     */
-    @RequiresAdmin
-    public void removeCategory(final UUID id) {
-        if (doesTaskExist(id)) {
-            repository
-                    .findByUuid0(id)
-                    .map(permissionService::checkWritePermission)
-                    .ifPresent(task -> {
-                        task.setCategory(null);
-                        repository.save(task);
-                    });
-        } else {
-            throw new ResourceNotFoundException(Task.class, id);
-        }
-    }
-
     private boolean doesTaskExist(final UUID id) {
         return repository.findByUuid0(id).isPresent();
-    }
-
-    private boolean doTaskAndCategoryExist(final UUID taskId, final UUID categoryId) {
-        return doesTaskExist(taskId) && categoryRepository.findByUuid(categoryId).isPresent();
     }
 
 }

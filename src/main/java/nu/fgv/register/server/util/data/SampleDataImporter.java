@@ -16,7 +16,6 @@
 
 package nu.fgv.register.server.util.data;
 
-import jakarta.ws.rs.core.Response;
 import lombok.extern.slf4j.Slf4j;
 import net.datafaker.Faker;
 import net.datafaker.providers.base.IdNumber;
@@ -27,27 +26,26 @@ import nu.fgv.register.server.security.policy.PermissionService;
 import nu.fgv.register.server.settings.Type;
 import nu.fgv.register.server.spex.category.SpexCategory;
 import nu.fgv.register.server.task.category.TaskCategory;
-import nu.fgv.register.server.user.authority.AuthorityService;
 import nu.fgv.register.server.util.security.CryptoConverter;
 import org.apache.commons.lang3.tuple.Pair;
-import org.keycloak.admin.client.Keycloak;
-import org.keycloak.admin.client.resource.UserResource;
-import org.keycloak.representations.idm.CredentialRepresentation;
-import org.keycloak.representations.idm.RoleRepresentation;
-import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.simple.JdbcClient;
+import nu.fgv.register.server.spexare.activity.task.actor.ActorCharacterService;
+import nu.fgv.register.server.sync.SyncService;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
+import javax.sql.DataSource;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.springframework.jdbc.datasource.SingleConnectionDataSource;
-import org.springframework.jdbc.datasource.init.ScriptUtils;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.security.authentication.TestingAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -80,7 +78,8 @@ import java.util.stream.IntStream;
 
 
 /**
- * Generates sample news, tags, spexare with their records and partners, and users, also in Keycloak.
+ * Generates sample news, tags, spexare with their records and partners, and users. The Keycloak accounts are
+ * fgv-infra-deploy's sample users (bin/seed-users.sh); this import never changes Keycloak.
  *
  * @author Anders Jacobsson
  * @since 2.0
@@ -95,7 +94,9 @@ public class SampleDataImporter {
     private static final int NUMBER_OF_SAMPLES_SPEXARE_MAX_MEMBERSHIPS_OF_EACH_TYPE = 3;
     private static final int NUMBER_OF_SAMPLES_SPEXARE_MAX_ACTIVITIES = 5;
     private static final int NUMBER_OF_SAMPLES_SPEXARE_MAX_TASK_ACTIVITIES_PER_ACTIVITY = 3;
+    // fgv-infra-deploy's sample members (sample-users.tsv): member01 to member50, the last five disabled
     private static final int NUMBER_OF_SAMPLES_USERS = 50;
+    private static final int NUMBER_OF_SAMPLES_INACTIVE_USERS = 5;
     private static final int SPEXARE_MIN_AGE = 18;
     private static final int SPEXARE_MAX_AGE = 105;
     private static final String SYSTEM_USER = "system";
@@ -118,34 +119,34 @@ public class SampleDataImporter {
     );
     protected static final Authentication AUTH = new TestingAuthenticationToken(SYSTEM_USER, "ignored", "ROLE_ADMIN");
     private static final String SAMPLE_USER_DOMAIN = "@fgv.nu";
+    private static final int SPEXIPEDIA_ATTEMPTS = 60;
+    private static final Duration SPEXIPEDIA_RETRY_INTERVAL = Duration.ofSeconds(10);
     private final PermissionService permissionService;
-    private final AuthorityService authorityService;
     private final AuditDataSeeder auditDataSeeder;
-    private final String sampleUserPassword;
-    private final Keycloak keycloakAdminClient;
-    private final String keycloakClientId;
     private final Random rnd = new SecureRandom();
     private final AtomicInteger failedImageDownloads = new AtomicInteger();
     private final Faker faker = new Faker(Locale.of("sv", "SE"));
     private final CustomSwedenIdNumber customSwedenIdNumber = new CustomSwedenIdNumber();
     private final CryptoConverter cryptoConverter;
-    @Value("${spexregister.keycloak.realm}")
-    private String keycloakRealm;
+    private final ObjectProvider<SyncService> syncService;
+    private final ObjectProvider<ActorCharacterService> actorCharacterService;
+    private final ObjectProvider<DataSource> dataSource;
+    private final AtomicBoolean pending = new AtomicBoolean();
+    // Spex key to the names of its characters, and its parent's for a revival, for sample actors' roles
+    private Map<Long, List<String>> characterNames = Map.of();
 
     public SampleDataImporter(final PermissionService permissionService,
-                              final AuthorityService authorityService,
                               final AuditDataSeeder auditDataSeeder,
-                              final Keycloak keycloakAdminClient,
-                              final String keycloakClientId,
-                              @Value("${spexregister.data.sample-user-password}") final String sampleUserPassword,
-                              @Value("${spexregister.crypto.secret-key}") final String secretKey) {
+                              @Value("${spexregister.crypto.secret-key}") final String secretKey,
+                              final ObjectProvider<SyncService> syncService,
+                              final ObjectProvider<ActorCharacterService> actorCharacterService,
+                              final ObjectProvider<DataSource> dataSource) {
         this.permissionService = permissionService;
-        this.authorityService = authorityService;
         this.auditDataSeeder = auditDataSeeder;
-        this.keycloakAdminClient = keycloakAdminClient;
-        this.keycloakClientId = keycloakClientId;
-        this.sampleUserPassword = sampleUserPassword;
         cryptoConverter = new CryptoConverter(secretKey);
+        this.syncService = syncService;
+        this.actorCharacterService = actorCharacterService;
+        this.dataSource = dataSource;
     }
 
     private static long insertImage(final JdbcClient jdbcClient, final byte[] data, final String contentType) {
@@ -166,32 +167,164 @@ public class SampleDataImporter {
     public void importSampleData(final Connection connection) {
         final JdbcClient jdbcClient = JdbcClient.create(new SingleConnectionDataSource(connection, true));
 
-        final long started = System.nanoTime();
-
         log.info("Importing sample data");
         timed("Emptied the tables", () -> purgeAllRelevantTables(jdbcClient));
-        timed("Deleted the users in Keycloak", this::purgeKeycloak);
         SecurityContextHolder.getContext().setAuthentication(AUTH);
-
-        timed("Created the task categories and tasks", () -> createSampleTaskCategoriesAndTasks(connection, jdbcClient));
-        timed("Created the spex categories and spex", () -> createSampleSpexCategoriesAndSpex(connection, jdbcClient));
         timed("Created the news", () -> createSampleNews(jdbcClient));
         timed("Created the tags", () -> createSampleTags(jdbcClient));
-        failedImageDownloads.set(0);
-        timed("Created the spexare", () -> createSampleSpexare(jdbcClient));
-        timed("Placed the spexare on the map", () -> createSampleLocations(jdbcClient));
-        if (failedImageDownloads.get() > 0) {
-            log.warn("{} sample spexare images could not be downloaded and were generated instead", failedImageDownloads.get());
-        }
-        final List<String> users = NotificationSuspender.whileSuspended(keycloakAdminClient.realm(keycloakRealm), () -> {
-            timed("Created the fixed users in Keycloak", this::createFixedSampleUsers);
-            return timedResult("Created the random users in Keycloak", () -> createSampleUsers(jdbcClient));
-        });
-
-        timed("Seeded the sample history", () -> auditDataSeeder.seedSampleHistory(jdbcClient, users));
-
         SecurityContextHolder.clearContext();
-        log.info("Imported sample data in {} s", Duration.ofNanos(System.nanoTime() - started).toSeconds());
+        // Spex and tasks come from Spexipedia: the rest is made once the application runs and has pulled its feed
+        pending.set(true);
+    }
+
+    /**
+     * The second half of the sample data: waits for Spexipedia, pulls its change feed from the start (spex categories,
+     * spex, revivals, task categories, tasks and characters with Spexipedia's sample ids), then makes the spexare, with
+     * activities on those spex and actors playing their characters, and the users.
+     */
+    @EventListener(ApplicationReadyEvent.class)
+    @Order(Ordered.HIGHEST_PRECEDENCE)
+    public void completeSampleData() {
+        if (!pending.getAndSet(false)) {
+            return;
+        }
+
+        final JdbcClient jdbcClient = JdbcClient.create(dataSource.getObject());
+        final long started = System.nanoTime();
+
+        timed("Copied base data from Spexipedia", this::pullBaseData);
+        SecurityContextHolder.getContext().setAuthentication(AUTH);
+        try {
+            characterNames = characterNames(jdbcClient);
+            failedImageDownloads.set(0);
+            timed("Created the spexare", () -> createSampleSpexare(jdbcClient));
+            timed("Created Spexipedia's fixed spexare", () -> createFixedSpexare(jdbcClient));
+            timed("Placed the spexare on the map", () -> createSampleLocations(jdbcClient));
+            if (failedImageDownloads.get() > 0) {
+                log.warn("{} sample spexare images could not be downloaded and were generated instead", failedImageDownloads.get());
+            }
+
+            final List<String> users = timedResult("Linked the sample members to spexare", () -> createSampleUsers(jdbcClient));
+
+            timed("Seeded the sample history", () -> auditDataSeeder.seedSampleHistory(jdbcClient, users));
+            timed("Linked actors to characters", () -> actorCharacterService.getObject().linkByRole());
+        } finally {
+            SecurityContextHolder.clearContext();
+        }
+        log.info("Imported the rest of the sample data in {} s", Duration.ofNanos(System.nanoTime() - started).toSeconds());
+    }
+
+    /**
+     * Pulls Spexipedia's feed from the start, waiting for Spexipedia for up to ten minutes; refuses without it.
+     */
+    private void pullBaseData() {
+        final SyncService sync = syncService.getObject();
+
+        for (int attempt = 1; attempt <= SPEXIPEDIA_ATTEMPTS; attempt++) {
+            final SyncService.Result result = sync.pull(true);
+
+            if (result != null && result.error() == null && result.applied() > 0) {
+                log.info("Copied {} changes from Spexipedia", result.applied());
+                return;
+            }
+            log.info("Waiting for Spexipedia's sample data ({}/{}): {}", attempt, SPEXIPEDIA_ATTEMPTS,
+                    result == null ? "a pull is running" : Objects.requireNonNullElse(result.error(), "no changes yet"));
+            try {
+                Thread.sleep(SPEXIPEDIA_RETRY_INTERVAL);
+            } catch (final InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new IllegalStateException("Interrupted while waiting for Spexipedia", e);
+            }
+        }
+        throw new IllegalStateException("Spexipedia's base data is needed for the sample data: start Spexipedia with its sample data first");
+    }
+
+    private static Map<Long, List<String>> characterNames(final JdbcClient jdbcClient) {
+        final Map<Long, List<String>> names = new HashMap<>();
+
+        jdbcClient.sql("""
+                        SELECT s.id, c.name FROM spex s
+                        JOIN spex_character c ON c.spex_id = s.id OR c.spex_id = s.parent_id
+                        WHERE c.retired = 0""")
+                .query((rs, _) -> Map.entry(rs.getLong(1), rs.getString(2)))
+                .list()
+                .forEach(entry -> names.computeIfAbsent(entry.getKey(), _ -> new ArrayList<>()).add(entry.getValue()));
+        return names;
+    }
+
+    /**
+     * The spexare Spexipedia's sample credits refer to, with the same ids: published and unpublished, with and without
+     * nicknames. The first two also played in, and sat on the board of, the earliest sample spex.
+     */
+    private void createFixedSpexare(final JdbcClient jdbcClient) {
+        final String[][] fixed = {
+                {"00000000-0000-7000-a000-000000000001", "Bertil", "Basson", "Basen", "true"},
+                {"00000000-0000-7000-a000-000000000002", "Cecilia", "Cellodal", "Cellan", "true"},
+                {"00000000-0000-7000-a000-000000000003", "David", "Dirigentsson", null, "true"},
+                {"00000000-0000-7000-a000-000000000004", "Eva", "Ensemblé", "Evita", "false"},
+                {"00000000-0000-7000-a000-000000000005", "Fredrik", "Fiolin", "Fiolen", "true"},
+                {"00000000-0000-7000-a000-000000000006", "Greta", "Gitarrqvist", null, "false"}};
+        final Long earliest = jdbcClient.sql("SELECT id FROM spex WHERE parent_id IS NULL ORDER BY year, id LIMIT 1").query(Long.class).optional().orElse(null);
+        final Long ensemble = jdbcClient.sql("SELECT t.id FROM task t JOIN task_category c ON c.id = t.category_id WHERE c.actor_present = 1 ORDER BY t.id LIMIT 1")
+                .query(Long.class).optional().orElse(null);
+        final Long board = jdbcClient.sql("SELECT t.id FROM task t JOIN task_category c ON c.id = t.category_id WHERE c.board = 1 ORDER BY t.name LIMIT 1")
+                .query(Long.class).optional().orElse(null);
+
+        for (int i = 0; i < fixed.length; i++) {
+            final String[] row = fixed[i];
+            final KeyHolder keyHolder = new GeneratedKeyHolder();
+
+            jdbcClient.sql("""
+                            INSERT INTO spexare (uuid, first_name, last_name, nick_name, deceased, published, created_by, created_at, version)
+                            VALUES (:uuid, :first, :last, :nick, 0, :published, :createdBy, :createdAt, 0)""")
+                    .param("uuid", row[0]).param("first", row[1]).param("last", row[2]).param("nick", row[3])
+                    .param("published", Boolean.parseBoolean(row[4]))
+                    .param("createdBy", SYSTEM_USER).param("createdAt", LocalDateTime.now().atZone(ZoneId.of("UTC")))
+                    .update(keyHolder);
+            if (earliest == null || keyHolder.getKey() == null || i > 3) {
+                continue;
+            }
+
+            final long spexareId = keyHolder.getKey().longValue();
+            final long activityId = insertActivity(jdbcClient, spexareId, earliest);
+
+            if (ensemble != null) {
+                final List<String> characters = characterNames.getOrDefault(earliest, List.of());
+                final long taskActivityId = insertTaskActivity(jdbcClient, activityId, ensemble);
+
+                jdbcClient.sql("""
+                                INSERT INTO actor (uuid, task_activity_id, vocal_id, role, created_by, created_at, version)
+                                VALUES (UUID(), :ta, 'UNKNOWN', :role, :createdBy, :createdAt, 0)""")
+                        .param("ta", taskActivityId).param("role", characters.isEmpty() ? null : characters.get(i % characters.size()))
+                        .param("createdBy", SYSTEM_USER).param("createdAt", LocalDateTime.now().atZone(ZoneId.of("UTC")))
+                        .update();
+            }
+            if (board != null && i < 2) {
+                insertTaskActivity(jdbcClient, activityId, board);
+            }
+        }
+    }
+
+    private long insertActivity(final JdbcClient jdbcClient, final long spexareId, final long spexId) {
+        final KeyHolder activity = new GeneratedKeyHolder();
+
+        jdbcClient.sql("INSERT INTO activity (uuid, spexare_id, created_by, created_at, version) VALUES (UUID(), :s, :by, :at, 0)")
+                .param("s", spexareId).param("by", SYSTEM_USER).param("at", LocalDateTime.now().atZone(ZoneId.of("UTC"))).update(activity);
+
+        final long activityId = Objects.requireNonNull(activity.getKey()).longValue();
+
+        jdbcClient.sql("INSERT INTO spex_activity (uuid, activity_id, spex_id, created_by, created_at, version) VALUES (UUID(), :a, :s, :by, :at, 0)")
+                .param("a", activityId).param("s", spexId).param("by", SYSTEM_USER).param("at", LocalDateTime.now().atZone(ZoneId.of("UTC"))).update();
+        return activityId;
+    }
+
+    private long insertTaskActivity(final JdbcClient jdbcClient, final long activityId, final long taskId) {
+        final KeyHolder taskActivity = new GeneratedKeyHolder();
+
+        jdbcClient.sql("INSERT INTO task_activity (uuid, activity_id, task_id, created_by, created_at, version) VALUES (UUID(), :a, :t, :by, :at, 0)")
+                .param("a", activityId).param("t", taskId).param("by", SYSTEM_USER).param("at", LocalDateTime.now().atZone(ZoneId.of("UTC")))
+                .update(taskActivity);
+        return Objects.requireNonNull(taskActivity.getKey()).longValue();
     }
 
     private void timed(final String step, final Runnable action) {
@@ -250,6 +383,7 @@ public class SampleDataImporter {
                 "tagging",
                 "toggle",
                 "spexare",
+                "spex_character",
                 "task",
                 "task_category",
                 "spex",
@@ -261,106 +395,14 @@ public class SampleDataImporter {
                 "user"
         );
 
+        jdbcClient.sql("UPDATE spex SET parent_id = NULL").update();
         tables.forEach(table ->
                 jdbcClient
                         .sql("DELETE FROM %s".formatted(table))
                         .update()
         );
-    }
-
-    private void purgeKeycloak() {
-        final List<UserRepresentation> users = keycloakAdminClient
-                .realm(keycloakRealm)
-                .users()
-                .list();
-
-        log.info("Deleting {} users in Keycloak", users.size());
-        users.forEach(representation -> {
-            try (final Response response = keycloakAdminClient
-                    .realm(keycloakRealm)
-                    .users()
-                    .delete(representation.getId())) {
-                if (response.getStatus() != HttpStatus.NO_CONTENT.value()) {
-                    throw new IllegalStateException("Unable to delete user " + representation.getEmail());
-                }
-            }
-        });
-    }
-
-    private void createSampleTaskCategoriesAndTasks(final Connection connection, final JdbcClient jdbcClient) {
-        ScriptUtils.executeSqlScript(connection, new ClassPathResource("db/sampledata/tasks.sql"));
-
-        final String taskSql = "UPDATE task SET created_at = :createdAt WHERE id = :id";
-
-        jdbcClient.sql("SELECT id FROM task")
-                .query()
-                .listOfRows()
-                .forEach(row -> {
-                    final Long id = (Long) Objects.requireNonNull(row.get("id"));
-
-                    jdbcClient.sql(taskSql)
-                            .param("createdAt", randomizeCreatedAt())
-                            .param("id", id)
-                            .update();
-                });
-    }
-
-    private void createSampleSpexCategoriesAndSpex(final Connection connection, final JdbcClient jdbcClient) {
-        ScriptUtils.executeSqlScript(connection, new ClassPathResource("db/sampledata/spex.sql"));
-
-        final String categorySql = """
-                UPDATE spex_category
-                SET
-                    logo_id = :imageId
-                WHERE
-                    id = :id
-                """;
-
-        jdbcClient.sql("SELECT id FROM spex_category")
-                .query()
-                .listOfRows()
-                .forEach(row -> {
-                    final Long id = (Long) Objects.requireNonNull(row.get("id"));
-
-                    jdbcClient
-                            .sql(categorySql)
-                            .param("imageId", insertImage(jdbcClient, imageToByteArray(faker.image().base64SVG()), "image/svg+xml"))
-                            .param("id", id)
-                            .update();
-                });
-
-        final String detailsSql = """
-                UPDATE spex_details
-                SET
-                    poster_id = :imageId
-                WHERE
-                    id = :id
-                """;
-
-        jdbcClient.sql("SELECT id FROM spex_details")
-                .query()
-                .listOfRows()
-                .forEach(row ->
-                        jdbcClient
-                                .sql(detailsSql)
-                                .param("imageId", insertImage(jdbcClient, imageToByteArray(faker.image().base64SVG()), "image/svg+xml"))
-                                .param("id", row.get("id"))
-                                .update()
-                );
-
-        final String spexSql = "UPDATE spex SET created_at = :createdAt WHERE id = :id";
-
-        jdbcClient.sql("SELECT id FROM spex")
-                .query()
-                .listOfRows()
-                .forEach(row -> {
-                    final Long id = (Long) Objects.requireNonNull(row.get("id"));
-
-                    jdbcClient.sql(spexSql)
-                            .param("createdAt", randomizeCreatedAt())
-                            .param("id", id)
-                            .update();
-                });
+        // The copy of base data is pulled again from the start of Spexipedia's feed
+        jdbcClient.sql("UPDATE sync_source SET cursor_value = NULL, applied = 0, last_error = NULL").update();
     }
 
     private void createSampleNews(final JdbcClient jdbcClient) {
@@ -412,6 +454,10 @@ public class SampleDataImporter {
         final Pair<Map<Long, List<Long>>, Map<Long, List<Long>>> spexAndRevivalsPerSpexCategory = getSpexPerSpexCategory(jdbcClient, spexCategories);
         final Map<Long, List<Long>> spexPerSpexCategory = spexAndRevivalsPerSpexCategory.getLeft();
         final Map<Long, List<Long>> revivalsPerSpexCategory = spexAndRevivalsPerSpexCategory.getRight();
+        // Spexipedia may have categories without spex, which activities can't refer to
+        final List<SpexCategory> spexCategoriesWithSpex = spexCategories.stream()
+                .filter(spexCategory -> spexPerSpexCategory.containsKey(spexCategory.getId()))
+                .toList();
         final List<Type> vocals = getVocals(jdbcClient);
         final String sql = """
                 INSERT INTO spexare
@@ -459,7 +505,7 @@ public class SampleDataImporter {
                 createSpexareMemberships(jdbcClient, spexareId);
                 createSpexareToggles(jdbcClient, spexareId);
                 createSpexareTaggings(jdbcClient, spexareId);
-                createSpexareActivities(jdbcClient, spexareId, taskCategories, tasksPerTaskCategory, spexCategories, spexPerSpexCategory, revivalsPerSpexCategory, vocals);
+                createSpexareActivities(jdbcClient, spexareId, taskCategories, tasksPerTaskCategory, spexCategoriesWithSpex, spexPerSpexCategory, revivalsPerSpexCategory, vocals);
                 spexareIds.add(spexareId);
             }
         });
@@ -773,7 +819,9 @@ public class SampleDataImporter {
                                 .sql(actorSql)
                                 .param("taskActivityId", taskActivityId)
                                 .param("vocalId", rnd.nextBoolean() ? vocals.get(rnd.nextInt(vocals.size())).getId() : "UNKNOWN")
-                                .param("role", rnd.nextBoolean() ?
+                                .param("role", !characterNames.getOrDefault(spexId, List.of()).isEmpty() && rnd.nextInt(5) != 0
+                                        ? characterNames.get(spexId).get(rnd.nextInt(characterNames.get(spexId).size()))
+                                        : rnd.nextBoolean() ?
                                         faker.collection(
                                                         () -> faker.oscarMovie().actor(),
                                                         () -> faker.oscarMovie().character(),
@@ -791,141 +839,38 @@ public class SampleDataImporter {
         });
     }
 
-    private void createFixedSampleUsers() {
-        createFixedSampleUser("admin", List.of("USER", "EDITOR", "ADMIN"));
-        createFixedSampleUser("editor", List.of("USER", "EDITOR"));
-        createFixedSampleUser("user", List.of("USER"));
-    }
-
-    private void createFixedSampleUser(final String name, final List<String> authorityIds) {
-        final UserRepresentation userRepresentation = new UserRepresentation();
-
-        userRepresentation.setEmail(name + SAMPLE_USER_DOMAIN);
-        userRepresentation.setFirstName(StringUtils.capitalize(name));
-        userRepresentation.setEnabled(true);
-        userRepresentation.setEmailVerified(true);
-        userRepresentation.setCredentials(List.of(sampleUserCredential()));
-
-        try (final Response response = keycloakAdminClient
-                .realm(keycloakRealm)
-                .users()
-                .create(userRepresentation)
-        ) {
-            if (response.getStatus() != HttpStatus.CREATED.value()) {
-                throw new IllegalStateException("Could not create user " + userRepresentation.getEmail() + " in Keycloak");
-            }
-
-            final String locationPath = response.getLocation().getPath();
-
-            keycloakAdminClient
-                    .realm(keycloakRealm)
-                    .users()
-                    .get(locationPath.substring(locationPath.lastIndexOf('/') + 1))
-                    .roles()
-                    .clientLevel(keycloakClientId)
-                    .add(authorityIds.stream().map(authorityService::getRoleRepresentationById).toList());
-        }
-    }
-
-    private CredentialRepresentation sampleUserCredential() {
-        final CredentialRepresentation credentialRepresentation = new CredentialRepresentation();
-
-        credentialRepresentation.setType(CredentialRepresentation.PASSWORD);
-        if (!StringUtils.hasText(sampleUserPassword)) {
-            throw new IllegalStateException("SAMPLE_USER_PASSWORD must be set to import sample data");
-        }
-        credentialRepresentation.setValue(sampleUserPassword);
-        credentialRepresentation.setTemporary(false);
-
-        return credentialRepresentation;
-    }
-
+    /**
+     * Spexregister's users for fgv-infra-deploy's sample members (bin/seed-users.sh, sample-users.tsv), which have their
+     * Keycloak accounts, roles and enabled flags there: {@code member01@fgv.nu} to {@code member50@fgv.nu}, with fixed
+     * ids, the last five inactive. Each is linked to a random spexare; Keycloak is never asked. The other sample users
+     * ({@code admin@fgv.nu} and so on) become users through the user sync, as real ones do.
+     *
+     * @return the members' email addresses
+     */
     private List<String> createSampleUsers(final JdbcClient jdbcClient) {
-        final List<RoleRepresentation> authorities = new ArrayList<>();
-
-        jdbcClient.sql("SELECT id FROM authority")
-                .query()
-                .listOfRows()
-                .forEach(row -> authorities.add(authorityService.getRoleRepresentationById((String) Objects.requireNonNull(row.get("id")))));
-
-        final List<Pair<String, Boolean>> states = new ArrayList<>();
-
-        jdbcClient.sql("SELECT id, enabled FROM state")
-                .query()
-                .listOfRows()
-                .forEach(row -> states.add(Pair.of((String) row.get("id"), (Boolean) row.get("enabled"))));
-
-        final List<Long> spexare = new ArrayList<>();
-
-        jdbcClient.sql("SELECT id FROM spexare")
-                .query()
-                .listOfRows()
-                .forEach(row -> spexare.add((Long) Objects.requireNonNull(row.get("id"))));
-
+        final List<Long> spexare = jdbcClient.sql("SELECT id FROM spexare").query(Long.class).list();
+        final List<Long> alreadyPickedSpexareIds = new ArrayList<>();
+        final List<String> emailAddresses = new ArrayList<>();
+        // The user sync may already have made the members users while the spexare were being created
         final String sql = """
                 INSERT INTO user
                     (uuid, external_id, state_id, spexare_id, created_by, created_at, version)
                 VALUES
-                    (UUID(), :externalId, :stateId, :spexareId, :createdBy, :createdAt, 0)
+                    (UUID(), :externalId, :stateId, :spexareId, :createdBy, :createdAt, 0) AS new
+                ON DUPLICATE KEY UPDATE
+                    state_id = new.state_id, spexare_id = new.spexare_id
                 """;
-        final CredentialRepresentation credentialRepresentation = sampleUserCredential();
-        final List<Long> alreadyPickedSpexareIds = new ArrayList<>();
-        final List<String> emailAddresses = new ArrayList<>();
 
-        IntStream.range(0, NUMBER_OF_SAMPLES_USERS).forEach(i -> {
-            final UserRepresentation userRepresentation = new UserRepresentation();
-            final Pair<String, Boolean> state = states.get(rnd.nextInt(states.size()));
-
-            userRepresentation.setEmail(faker.internet().emailAddress());
-            userRepresentation.setEnabled(state.getRight());
-            userRepresentation.setCredentials(List.of(credentialRepresentation));
-
-            try (final Response response = keycloakAdminClient
-                    .realm(keycloakRealm)
-                    .users()
-                    .create(userRepresentation)
-            ) {
-                if (response.getStatus() == HttpStatus.CREATED.value()) {
-                    final String locationPath = response.getLocation().getPath();
-                    final String externalId = locationPath.substring(locationPath.lastIndexOf('/') + 1);
-
-                    try {
-                        final UserResource userResource = keycloakAdminClient
-                                .realm(keycloakRealm)
-                                .users()
-                                .get(externalId);
-
-                        final RoleRepresentation authority = authorities.get(rnd.nextInt(authorities.size()));
-
-                        userResource
-                                .roles()
-                                .clientLevel(keycloakClientId)
-                                .add(List.of(authority));
-
-                        final KeyHolder keyHolder = new GeneratedKeyHolder();
-                        final long spexareId = getRandomSpexareId(spexare, alreadyPickedSpexareIds);
-
-                        jdbcClient
-                                .sql(sql)
-                                .param("externalId", externalId)
-                                .param("stateId", state.getLeft())
-                                .param("spexareId", spexareId)
-                                .param("createdBy", SYSTEM_USER)
-                                .param("createdAt", randomizeCreatedAt())
-                                .update(keyHolder);
-
-                        if (keyHolder.getKey() != null) {
-                            final long id = keyHolder.getKey().longValue();
-
-                            emailAddresses.add(userRepresentation.getEmail());
-                        }
-                    } catch (final Exception e) {
-                        throw new IllegalStateException("Could not retrieve newly created user in Keycloak", e);
-                    }
-                } else {
-                    throw new IllegalStateException("Could not create user in Keycloak");
-                }
-            }
+        IntStream.rangeClosed(1, NUMBER_OF_SAMPLES_USERS).forEach(i -> {
+            jdbcClient
+                    .sql(sql)
+                    .param("externalId", "00000000-0000-4000-8000-%012d".formatted(1000 + i))
+                    .param("stateId", i > NUMBER_OF_SAMPLES_USERS - NUMBER_OF_SAMPLES_INACTIVE_USERS ? "INACTIVE" : "ACTIVE")
+                    .param("spexareId", getRandomSpexareId(spexare, alreadyPickedSpexareIds))
+                    .param("createdBy", SYSTEM_USER)
+                    .param("createdAt", randomizeCreatedAt())
+                    .update();
+            emailAddresses.add("member%02d%s".formatted(i, SAMPLE_USER_DOMAIN));
         });
 
         return List.copyOf(emailAddresses);

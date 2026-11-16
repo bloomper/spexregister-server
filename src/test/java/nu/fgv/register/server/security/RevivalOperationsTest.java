@@ -48,14 +48,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 class RevivalOperationsTest {
 
     private static final String BASE_PACKAGE = "nu.fgv.register.server";
-    private static final String REVIVAL = "'spexregister_REVIVAL'";
+    private static final String REVIVAL = "'fgv-spexregister_REVIVAL'";
 
     private static final Set<String> GRAPHQL_OPERATIONS = Set.of(
             // Reference data
             "Query.spexPaged",
             "Query.spex",
-            "Query.spexRevival",
-            "Spex.revivalsPaged",
             "Spex.revivals",
             "Query.taskPaged",
             "Query.task",
@@ -83,13 +81,14 @@ class RevivalOperationsTest {
             "TaskActivity.task",
             "TaskActivity.actorsPaged",
             "TaskActivity.actors",
+            // The characters a revival's actors may play, from Spexipedia's copy
+            "Query.spexCharacters",
             // Creating and updating
             "Mutation.spexareCreate",
             "Mutation.addressCreate",
             "Mutation.addressUpdate",
             "Mutation.consentCreate",
             "Mutation.consentUpdate",
-            "Mutation.spexRevivalCreate",
             "Mutation.activityCreate",
             "Mutation.spexActivityCreate",
             "Mutation.taskActivityCreate",
@@ -175,7 +174,8 @@ class RevivalOperationsTest {
     }
 
     @Test
-    void should_let_revival_through_to_no_rest_operation_but_reading_spexes() {
-        assertThat(restControllersOpenToRevival()).containsExactly("SpexApi");
+    void should_let_revival_through_to_no_rest_operation() {
+        // Revivals are created in Spexipedia now, so no REST operation is open to Nyuppsättning
+        assertThat(restControllersOpenToRevival()).isEmpty();
     }
 }

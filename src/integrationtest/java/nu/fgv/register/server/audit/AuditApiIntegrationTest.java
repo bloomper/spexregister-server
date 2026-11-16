@@ -16,7 +16,6 @@
 
 package nu.fgv.register.server.audit;
 
-import nu.fgv.register.server.image.Image;
 import nu.fgv.register.server.spex.Spex;
 import nu.fgv.register.server.spex.SpexDetails;
 import nu.fgv.register.server.spex.SpexDetailsRepository;
@@ -25,8 +24,16 @@ import nu.fgv.register.server.spex.category.SpexCategory;
 import nu.fgv.register.server.spex.category.SpexCategoryRepository;
 import nu.fgv.register.server.spexare.Spexare;
 import nu.fgv.register.server.spexare.SpexareRepository;
+import nu.fgv.register.server.spexare.activity.Activity;
+import nu.fgv.register.server.spexare.activity.ActivityRepository;
+import nu.fgv.register.server.spexare.activity.task.TaskActivity;
+import nu.fgv.register.server.spexare.activity.task.TaskActivityRepository;
 import nu.fgv.register.server.tag.Tag;
 import nu.fgv.register.server.tag.TagRepository;
+import nu.fgv.register.server.task.Task;
+import nu.fgv.register.server.task.TaskRepository;
+import nu.fgv.register.server.task.category.TaskCategory;
+import nu.fgv.register.server.task.category.TaskCategoryRepository;
 import nu.fgv.register.server.util.AbstractAuditable;
 import nu.fgv.register.server.util.AbstractIntegrationTest;
 import nu.fgv.register.server.util.HalEmbeddedResponse;
@@ -70,6 +77,10 @@ class AuditApiIntegrationTest extends AbstractIntegrationTest {
     private final SpexDetailsRepository spexDetailsRepository;
     private final SpexareRepository spexareRepository;
     private final SpexCategoryRepository spexCategoryRepository;
+    private final TaskCategoryRepository taskCategoryRepository;
+    private final TaskRepository taskRepository;
+    private final ActivityRepository activityRepository;
+    private final TaskActivityRepository taskActivityRepository;
 
     @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
@@ -81,6 +92,10 @@ class AuditApiIntegrationTest extends AbstractIntegrationTest {
                                    final SpexDetailsRepository spexDetailsRepository,
                                    final SpexCategoryRepository spexCategoryRepository,
                                    final SpexareRepository spexareRepository,
+                                   final TaskCategoryRepository taskCategoryRepository,
+                                   final TaskRepository taskRepository,
+                                   final ActivityRepository activityRepository,
+                                   final TaskActivityRepository taskActivityRepository,
                                    final ObjectMapper objectMapper) {
         super(jdbcClient, keycloakAdminClient, keycloakClientId, objectMapper);
         this.repository = repository;
@@ -88,6 +103,10 @@ class AuditApiIntegrationTest extends AbstractIntegrationTest {
         this.spexDetailsRepository = spexDetailsRepository;
         this.spexCategoryRepository = spexCategoryRepository;
         this.spexareRepository = spexareRepository;
+        this.taskCategoryRepository = taskCategoryRepository;
+        this.taskRepository = taskRepository;
+        this.activityRepository = activityRepository;
+        this.taskActivityRepository = taskActivityRepository;
 
         final EasyRandomParameters parameters = RandomizerSupport.parameters();
 
@@ -104,8 +123,10 @@ class AuditApiIntegrationTest extends AbstractIntegrationTest {
                 .apiVersionInserter(ApiVersionInserter.useHeader("X-API-Version"))
                 .build();
 
-        JdbcTestUtils.deleteFromTables(jdbcClient, "tag", "spex", "spex_details", "spex_category", "spexare",
-                "spexare_audit", "tag_audit", "spex_audit", "spex_details_audit", "spex_category_audit", "revchanges", "revinfo");
+        JdbcTestUtils.deleteFromTables(jdbcClient, "task_activity", "activity", "task", "task_category", "tag", "spex",
+                "spex_details", "spex_category", "spexare", "task_activity_audit", "activity_audit", "task_audit",
+                "task_category_audit", "spexare_audit", "tag_audit", "spex_audit", "spex_details_audit", "spex_category_audit",
+                "revchanges", "revinfo");
     }
 
     private List<RevisionDto> retrieveRevisions(final UUID id, final String token) {
@@ -135,7 +156,7 @@ class AuditApiIntegrationTest extends AbstractIntegrationTest {
         category.setId(null);
         category.setName(name);
         category.setFirstYear("1948");
-        category.setLogo(null);
+        category.setLogoUrl(null);
 
         return spexCategoryRepository.save(category);
     }
@@ -146,7 +167,6 @@ class AuditApiIntegrationTest extends AbstractIntegrationTest {
         details.setId(null);
         details.setTitle(title);
         details.setCategory(category);
-        details.setPoster(Image.of(new byte[]{1, 2, 3}, MediaType.IMAGE_PNG_VALUE));
 
         return spexDetailsRepository.save(details);
     }
@@ -174,6 +194,36 @@ class AuditApiIntegrationTest extends AbstractIntegrationTest {
         spexare.setPublished(false);
 
         return spexareRepository.save(spexare);
+    }
+
+    private Task persistTask(final String name) {
+        final TaskCategory category = new TaskCategory();
+
+        category.setName("Ensemble");
+        category.setActorPresent(true);
+
+        final Task task = new Task();
+
+        task.setName(name);
+        task.setCategory(taskCategoryRepository.save(category));
+
+        return taskRepository.save(task);
+    }
+
+    /**
+     * A task activity, owned by an unpublished spexare: its history is the spexare's, and its task is an association.
+     */
+    private TaskActivity persistTaskActivity(final Task task) {
+        final Activity activity = new Activity();
+
+        activity.setSpexare(persistUnpublishedSpexare());
+
+        final TaskActivity taskActivity = new TaskActivity();
+
+        taskActivity.setActivity(activityRepository.save(activity));
+        taskActivity.setTask(task);
+
+        return taskActivityRepository.save(taskActivity);
     }
 
     private Tag persistTag() {
@@ -226,52 +276,117 @@ class AuditApiIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_render_the_label_of_an_association_instead_of_its_id() {
-            final var category = persistSpexCategory("Chalmersspexet");
-            final var details = persistSpexDetails(category, "Nobel");
-            final var spex = persistSpex(details, "2024");
+            final var taskActivity = persistTaskActivity(persistTask("Scenmästare"));
 
-            final List<RevisionDto> result = retrieveRevisions(AuditedType.SPEX, spex.getUuid(), obtainAdminAccessToken());
+            final List<RevisionDto> result = retrieveRevisions(AuditedType.TASK_ACTIVITY, taskActivity.getUuid(), obtainAdminAccessToken());
 
             assertThat(result).isNotEmpty();
             assertThat(result.getFirst().changes())
-                    .filteredOn(change -> "details".equals(change.field()))
+                    .filteredOn(change -> "task".equals(change.field()))
                     .singleElement()
-                    .satisfies(change -> assertThat(change.newValue()).isEqualTo("Nobel"));
+                    .satisfies(change -> assertThat(change.newValue()).isEqualTo("Scenmästare"));
         }
 
         @Test
-        void should_include_the_details_of_a_spex_in_its_own_timeline() {
-            final var category = persistSpexCategory("Chalmersspexet");
-            final var details = persistSpexDetails(category, "Nobel");
-            final var spex = persistSpex(details, "2024");
+        void should_attribute_each_change_to_its_own_entity() {
+            final var taskActivity = persistTaskActivity(persistTask("Scenmästare"));
+            final var activity = taskActivity.getActivity();
 
-            final List<RevisionDto> result = retrieveRevisions(AuditedType.SPEX, spex.getUuid(), obtainAdminAccessToken());
+            final List<RevisionDto> result = Objects.requireNonNull(
+                            restTestClient
+                                    .get()
+                                    .uri("/{type}/{id}/related/{relatedType}", "SPEXARE", activity.getSpexare().getUuid(), "ACTIVITY")
+                                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                                    .apiVersion("1.0")
+                                    .exchange()
+                                    .expectStatus().isOk()
+                                    .expectBody(new ParameterizedTypeReference<@NonNull HalEmbeddedResponse<RevisionDto>>() {
+                                    })
+                                    .returnResult()
+                                    .getResponseBody())
+                    .getList("revisions");
 
             assertThat(result)
-                    .extracting(RevisionDto::type)
-                    .contains(AuditedType.SPEX, AuditedType.SPEX_DETAILS);
-
-            assertThat(result)
-                    .filteredOn(revision -> revision.type() == AuditedType.SPEX_DETAILS)
                     .flatExtracting(RevisionDto::changes)
-                    .extracting(FieldChangeDto::field)
-                    .contains("title", "poster", "category");
+                    .filteredOn(change -> "task".equals(change.field()))
+                    .singleElement()
+                    .satisfies(change -> {
+                        assertThat(change.type()).isEqualTo(AuditedType.TASK_ACTIVITY);
+                        assertThat(change.entityId()).isEqualTo(taskActivity.getUuid().toString());
+                    });
+
+            assertThat(result)
+                    .flatExtracting(RevisionDto::changes)
+                    .filteredOn(change -> "spexare".equals(change.field()))
+                    .singleElement()
+                    .satisfies(change -> {
+                        assertThat(change.type()).isEqualTo(AuditedType.ACTIVITY);
+                        assertThat(change.entityId()).isEqualTo(activity.getUuid().toString());
+                    });
         }
 
         @Test
-        void should_restore_the_details_along_with_the_spex() {
+        void should_refuse_to_serve_a_property_that_is_not_binary() {
+            final var spexare = persistUnpublishedSpexare();
+            final var creation = retrieveRevisions(AuditedType.SPEXARE, spexare.getUuid(), obtainAdminAccessToken()).getLast();
+
+            restTestClient
+                    .get()
+                    .uri("/{type}/{id}/{revision}/binary/{field}", "SPEXARE", spexare.getUuid(), creation.revision(), "firstName")
+                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .apiVersion("1.0")
+                    .exchange()
+                    .expectStatus().isBadRequest();
+        }
+
+        @Test
+        void should_still_report_a_change_when_two_targets_share_a_label() {
+            final var second = persistTask("Sångare");
+            final var taskActivity = persistTaskActivity(persistTask("Sångare"));
+
+            taskActivity.setTask(second);
+            taskActivityRepository.save(taskActivity);
+
+            final List<RevisionDto> result = retrieveRevisions(AuditedType.TASK_ACTIVITY, taskActivity.getUuid(), obtainAdminAccessToken());
+
+            assertThat(result.getFirst().changes())
+                    .extracting(FieldChangeDto::field)
+                    .contains("task");
+        }
+    }
+
+    @Nested
+    @DisplayName("Base data")
+    class BaseDataTests {
+
+        @Test
+        void should_refuse_the_history_of_base_data_since_spexipedia_keeps_it() {
             final var category = persistSpexCategory("Chalmersspexet");
             final var details = persistSpexDetails(category, "Nobel");
             final var spex = persistSpex(details, "2024");
 
-            final var originalRevision = retrieveRevisions(AuditedType.SPEX, spex.getUuid(), obtainAdminAccessToken()).stream()
-                    .filter(revision -> revision.type() == AuditedType.SPEX)
-                    .toList()
-                    .getLast()
-                    .revision();
+            List.of("SPEX", "SPEX_DETAILS", "SPEX_CATEGORY").forEach(type -> restTestClient
+                    .get()
+                    .uri("/{type}/{id}", type, "SPEX".equals(type) ? spex.getUuid() : "SPEX_DETAILS".equals(type) ? details.getUuid() : category.getUuid())
+                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .apiVersion("1.0")
+                    .exchange()
+                    .expectStatus().isBadRequest());
+        }
 
-            details.setTitle("Nobel 2");
-            spexDetailsRepository.save(details);
+        @Test
+        void should_refuse_to_restore_base_data() {
+            final var category = persistSpexCategory("Chalmersspexet");
+            final var details = persistSpexDetails(category, "Nobel");
+            final var spex = persistSpex(details, "2024");
+            final Long originalRevision = jdbcClient
+                    .sql("SELECT MIN(rev) FROM spex_audit WHERE id = :id")
+                    .param("id", spex.getId())
+                    .query(Long.class)
+                    .single();
+
             spex.setYear("2025");
             spexRepository.save(spex);
 
@@ -282,173 +397,9 @@ class AuditApiIntegrationTest extends AbstractIntegrationTest {
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .apiVersion("1.0")
                     .exchange()
-                    .expectStatus().isOk();
-
-            assertThat(spexRepository.findById(spex.getId()).orElseThrow().getYear()).isEqualTo("2024");
-            assertThat(spexDetailsRepository.findById(details.getId()).orElseThrow().getTitle()).isEqualTo("Nobel");
-        }
-
-        @Test
-        void should_report_a_poster_change_on_the_details_of_a_spex() {
-            final var category = persistSpexCategory("Chalmersspexet");
-            final var details = persistSpexDetails(category, "Nobel");
-            final var spex = persistSpex(details, "2024");
-
-            details.setPoster(Image.of(new byte[]{4, 5, 6}, MediaType.IMAGE_PNG_VALUE));
-            spexDetailsRepository.save(details);
-
-            final List<RevisionDto> result = retrieveRevisions(AuditedType.SPEX, spex.getUuid(), obtainAdminAccessToken());
-
-            assertThat(result.getFirst().type()).isEqualTo(AuditedType.SPEX_DETAILS);
-            assertThat(result.getFirst().changes())
-                    .filteredOn(change -> "poster".equals(change.field()))
-                    .singleElement()
-                    .satisfies(change -> assertThat(change.binary()).isTrue());
-        }
-
-        @Test
-        void should_attribute_each_change_in_a_merged_revision_to_its_own_entity() {
-            final var category = persistSpexCategory("Chalmersspexet");
-            final var details = persistSpexDetails(category, "Nobel");
-            final var spex = persistSpex(details, "2024");
-
-            final List<RevisionDto> result = retrieveRevisions(AuditedType.SPEX, spex.getUuid(), obtainAdminAccessToken());
-
-            assertThat(result)
-                    .flatExtracting(RevisionDto::changes)
-                    .filteredOn(change -> "poster".equals(change.field()))
-                    .singleElement()
-                    .satisfies(change -> {
-                        assertThat(change.type()).isEqualTo(AuditedType.SPEX_DETAILS);
-                        assertThat(change.entityId()).isEqualTo(details.getUuid().toString());
-                    });
-
-            assertThat(result)
-                    .flatExtracting(RevisionDto::changes)
-                    .filteredOn(change -> "year".equals(change.field()))
-                    .singleElement()
-                    .satisfies(change -> {
-                        assertThat(change.type()).isEqualTo(AuditedType.SPEX);
-                        assertThat(change.entityId()).isEqualTo(spex.getUuid().toString());
-                    });
-        }
-
-        @Test
-        void should_serve_the_poster_as_it_was_at_a_revision() {
-            final var category = persistSpexCategory("Chalmersspexet");
-            final var details = persistSpexDetails(category, "Nobel");
-            final var spex = persistSpex(details, "2024");
-
-            final var creation = retrieveRevisions(AuditedType.SPEX, spex.getUuid(), obtainAdminAccessToken()).stream()
-                    .filter(revision -> revision.type() == AuditedType.SPEX_DETAILS)
-                    .toList()
-                    .getLast();
-
-            assertThat(creation.changes())
-                    .filteredOn(change -> "poster".equals(change.field()))
-                    .singleElement()
-                    .satisfies(change -> {
-                        assertThat(change.binary()).isTrue();
-                        assertThat(change.oldValue()).isNull();
-                        assertThat(change.newValue()).isEqualTo(MediaType.IMAGE_PNG_VALUE);
-                    });
-
-            final byte[] poster = restTestClient
-                    .get()
-                    .uri("/{type}/{id}/{revision}/binary/{field}", "SPEX", spex.getUuid(), creation.revision(), "poster")
-                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                    .apiVersion("1.0")
-                    .exchange()
-                    .expectStatus().isOk()
-                    .expectHeader().contentType(MediaType.IMAGE_PNG)
-                    .expectBody(byte[].class)
-                    .returnResult()
-                    .getResponseBody();
-
-            assertThat(poster).containsExactly(1, 2, 3);
-        }
-
-        @Test
-        void should_serve_the_poster_when_asked_for_by_the_details_themselves() {
-            final var category = persistSpexCategory("Chalmersspexet");
-            final var details = persistSpexDetails(category, "Nobel");
-            final var spex = persistSpex(details, "2024");
-
-            final var creation = retrieveRevisions(AuditedType.SPEX, spex.getUuid(), obtainAdminAccessToken()).stream()
-                    .filter(revision -> revision.type() == AuditedType.SPEX_DETAILS)
-                    .toList()
-                    .getLast();
-
-            final byte[] poster = restTestClient
-                    .get()
-                    .uri("/{type}/{id}/{revision}/binary/{field}", "SPEX_DETAILS", details.getUuid(), creation.revision(), "poster")
-                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                    .apiVersion("1.0")
-                    .exchange()
-                    .expectStatus().isOk()
-                    .expectHeader().contentType(MediaType.IMAGE_PNG)
-                    .expectBody(byte[].class)
-                    .returnResult()
-                    .getResponseBody();
-
-            assertThat(poster).containsExactly(1, 2, 3);
-        }
-
-        @Test
-        void should_serve_the_poster_to_someone_permitted_only_on_the_spex() {
-            final var category = persistSpexCategory("Chalmersspexet");
-            final var details = persistSpexDetails(category, "Nobel");
-            final var spex = persistSpex(details, "2024");
-
-            final var creation = retrieveRevisions(AuditedType.SPEX, spex.getUuid(), obtainAdminAccessToken()).stream()
-                    .filter(revision -> revision.type() == AuditedType.SPEX_DETAILS)
-                    .toList()
-                    .getLast();
-
-            restTestClient
-                    .get()
-                    .uri("/{type}/{id}/{revision}/binary/{field}", "SPEX", spex.getUuid(), creation.revision(), "poster")
-                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                    .apiVersion("1.0")
-                    .exchange()
-                    .expectStatus().isOk();
-        }
-
-        @Test
-        void should_refuse_to_serve_a_property_that_is_not_binary() {
-            final var category = persistSpexCategory("Chalmersspexet");
-            final var details = persistSpexDetails(category, "Nobel");
-            final var spex = persistSpex(details, "2024");
-
-            final var creation = retrieveRevisions(AuditedType.SPEX, spex.getUuid(), obtainAdminAccessToken()).stream()
-                    .filter(revision -> revision.type() == AuditedType.SPEX_DETAILS)
-                    .toList()
-                    .getLast();
-
-            restTestClient
-                    .get()
-                    .uri("/{type}/{id}/{revision}/binary/{field}", "SPEX", spex.getUuid(), creation.revision(), "title")
-                    .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
-                    .apiVersion("1.0")
-                    .exchange()
                     .expectStatus().isBadRequest();
-        }
 
-        @Test
-        void should_still_report_a_change_when_two_targets_share_a_label() {
-            final var category = persistSpexCategory("Chalmersspexet");
-            final var first = persistSpexDetails(category, "Nobel");
-            final var second = persistSpexDetails(category, "Nobel");
-            final var spex = persistSpex(first, "2024");
-
-            spex.setDetails(second);
-            spexRepository.save(spex);
-
-            final List<RevisionDto> result = retrieveRevisions(AuditedType.SPEX, spex.getUuid(), obtainAdminAccessToken());
-
-            assertThat(result.getFirst().changes())
-                    .extracting(FieldChangeDto::field)
-                    .contains("details");
+            assertThat(spexRepository.findById(spex.getId()).orElseThrow().getYear()).isEqualTo("2025");
         }
     }
 

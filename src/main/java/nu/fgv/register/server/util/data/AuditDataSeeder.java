@@ -61,22 +61,19 @@ public class AuditDataSeeder {
     private static final List<AuditedTable> TABLES = List.of(
             AuditedTable.of("nu.fgv.register.server.settings.Type", "type", "id, type, labels"),
             AuditedTable.of("nu.fgv.register.server.user.state.State", "state", "id, labels, initial, enabled"),
-            AuditedTable.of("nu.fgv.register.server.user.User", "user", "id, uuid, external_id, state_id, spexare_id"),
+            AuditedTable.of("nu.fgv.register.server.user.User", "user", "id, uuid, external_id, state_id, spexare_id, spexare_auto_link"),
             AuditedTable.of("nu.fgv.register.server.tag.Tag", "tag", "id, uuid, name")
                     .withHistory("name = LEFT(CONCAT('Preliminär ', name), 255)", "name = LEFT(CONCAT(name, ' (utkast)'), 255)"),
             AuditedTable.of("nu.fgv.register.server.news.News", "news", "id, uuid, visible_from, visible_to, subject, text, published")
                     .withHistory("subject = LEFT(CONCAT('Utkast: ', subject), 255)", "published = 1 - COALESCE(published, 0)"),
             AuditedTable.of("nu.fgv.register.server.image.Image", "image", "id, data, content_type"),
-            AuditedTable.of("nu.fgv.register.server.spex.category.SpexCategory", "spex_category", "id, uuid, name, first_year, logo_id")
-                    .withHistory("name = LEFT(CONCAT(name, ' (arbetsnamn)'), 255)"),
-            AuditedTable.of("nu.fgv.register.server.spex.SpexDetails", "spex_details", "id, uuid, title, poster_id, category_id")
-                    .withHistory("title = LEFT(CONCAT(title, ' (arbetstitel)'), 255)"),
-            AuditedTable.of("nu.fgv.register.server.spex.Spex", "spex", "id, uuid, year, parent_id, details_id")
-                    .withHistory("year = CAST(CAST(year AS UNSIGNED) - 1 AS CHAR)"),
-            AuditedTable.of("nu.fgv.register.server.task.category.TaskCategory", "task_category", "id, uuid, name, actor_present")
-                    .withHistory("name = LEFT(CONCAT(name, ' (preliminär)'), 255)"),
-            AuditedTable.of("nu.fgv.register.server.task.Task", "task", "id, uuid, name, category_id")
-                    .withHistory("name = LEFT(CONCAT(name, ' (preliminär)'), 255)"),
+            // Base data gets only the baseline: Spexipedia keeps it, and its history is not in the change log
+            AuditedTable.of("nu.fgv.register.server.spex.category.SpexCategory", "spex_category", "id, uuid, name, first_year, logo_url, retired"),
+            AuditedTable.of("nu.fgv.register.server.spex.SpexDetails", "spex_details", "id, uuid, title, category_id"),
+            AuditedTable.of("nu.fgv.register.server.spex.Spex", "spex", "id, uuid, year, parent_id, details_id, poster_url, retired"),
+            AuditedTable.of("nu.fgv.register.server.spex.character.SpexCharacter", "spex_character", "id, uuid, spex_id, name, position, retired"),
+            AuditedTable.of("nu.fgv.register.server.task.category.TaskCategory", "task_category", "id, uuid, name, actor_present, board, retired"),
+            AuditedTable.of("nu.fgv.register.server.task.Task", "task", "id, uuid, name, category_id, retired"),
             AuditedTable.of("nu.fgv.register.server.spexare.Spexare", "spexare",
                             "id, uuid, first_name, last_name, nick_name, social_security_number, deceased, published, graduation, comment, image_id, partner_id")
                     .withHistory("comment = CONCAT('(tidigare) ', COALESCE(comment, ''))", "graduation = LEFT(CONCAT('(tidigare) ', COALESCE(graduation, '')), 255)", "nick_name = LEFT(CONCAT('(tidigare) ', COALESCE(nick_name, '')), 255)"),
@@ -94,7 +91,7 @@ public class AuditDataSeeder {
             AuditedTable.of("nu.fgv.register.server.spexare.activity.Activity", "activity", "id, uuid, spexare_id"),
             AuditedTable.of("nu.fgv.register.server.spexare.activity.spex.SpexActivity", "spex_activity", "id, uuid, activity_id, spex_id"),
             AuditedTable.of("nu.fgv.register.server.spexare.activity.task.TaskActivity", "task_activity", "id, uuid, activity_id, task_id"),
-            AuditedTable.of("nu.fgv.register.server.spexare.activity.task.actor.Actor", "actor", "id, uuid, role, vocal_id, task_activity_id")
+            AuditedTable.of("nu.fgv.register.server.spexare.activity.task.actor.Actor", "actor", "id, uuid, role, vocal_id, task_activity_id, character_id")
                     .withHistory("role = LEFT(CONCAT(COALESCE(role, ''), ' (ersättare)'), 255)")
     );
 

@@ -17,10 +17,8 @@
 package nu.fgv.register.server.spex;
 
 import nu.fgv.register.server.spex.category.SpexCategoryMapper;
-import nu.fgv.register.server.util.FileUtil;
 import org.mapstruct.AfterMapping;
 import org.mapstruct.BeanMapping;
-import org.mapstruct.InheritConfiguration;
 import org.mapstruct.Mapper;
 import org.mapstruct.MapperConfig;
 import org.mapstruct.Mapping;
@@ -28,7 +26,6 @@ import org.mapstruct.MappingTarget;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 import org.mapstruct.ReportingPolicy;
 import org.mapstruct.factory.Mappers;
-import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 
 import java.util.Optional;
 
@@ -39,7 +36,7 @@ import java.util.Optional;
 @Mapper(
         nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
         uses = SpexCategoryMapper.class,
-        imports = {Optional.class, WebMvcLinkBuilder.class, FileUtil.class}
+        imports = {Optional.class}
 )
 @MapperConfig(
         unmappedTargetPolicy = ReportingPolicy.ERROR,
@@ -50,13 +47,11 @@ public interface SpexMapper {
     SpexMapper SPEX_MAPPER = Mappers.getMapper(SpexMapper.class);
 
     @Mapping(target = "title", source = "details.title")
-    @Mapping(target = "posterUrl", expression = "java(Optional.ofNullable(model.getDetails().getPoster()).map(poster -> WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(SpexApi.class).downloadPoster(model.getUuid())).toUri().toString()).orElse(null))")
     @BeanMapping(ignoreUnmappedSourceProperties = {"details"})
     @Mapping(target = "id", source = "uuid")
     SpexDto toDto(Spex model);
 
     @Mapping(target = "title", source = "details.title")
-    @Mapping(target = "posterUrl", expression = "java(Optional.ofNullable(model.getDetails().getPoster()).map(poster -> WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(SpexApi.class).downloadPoster(model.getUuid())).toUri().toString()).map(FileUtil::toPublicUrl).orElse(null))")
     @Mapping(target = "categoryId", source = "details.category.uuid")
     @Mapping(target = "categoryName", source = "details.category.name")
     @Mapping(target = "action", expression = "java(nu.fgv.register.server.impex.model.ImpexAction.UPDATE)")
@@ -73,39 +68,6 @@ public interface SpexMapper {
     @Mapping(target = "rowNumber", ignore = true)
     @Mapping(target = "id", source = "uuid")
     SpexRevivalImpexDto toRevivalImpexDto(Spex model);
-
-    @Mapping(target = "id", ignore = true)
-    @Mapping(target = "details.title", source = "title")
-    @Mapping(target = "parent", ignore = true)
-    @Mapping(target = "createdBy", ignore = true)
-    @Mapping(target = "createdAt", ignore = true)
-    @Mapping(target = "lastModifiedBy", ignore = true)
-    @Mapping(target = "lastModifiedAt", ignore = true)
-    @Mapping(target = "version", ignore = true)
-    Spex toModel(SpexCreateDto dto);
-
-    @Mapping(target = "details.title", source = "title")
-    @Mapping(target = "details.category", ignore = true)
-    @Mapping(target = "details.createdBy", ignore = true)
-    @Mapping(target = "details.createdAt", ignore = true)
-    @Mapping(target = "details.lastModifiedBy", ignore = true)
-    @Mapping(target = "details.lastModifiedAt", ignore = true)
-    @Mapping(target = "details.version", ignore = true)
-    @Mapping(target = "parent", ignore = true)
-    @Mapping(target = "createdBy", ignore = true)
-    @Mapping(target = "createdAt", ignore = true)
-    @Mapping(target = "lastModifiedBy", ignore = true)
-    @Mapping(target = "lastModifiedAt", ignore = true)
-    @Mapping(target = "version", ignore = true)
-    @Mapping(target = "id", ignore = true)
-    Spex toModel(SpexUpdateDto dto);
-
-    @InheritConfiguration(name = "toModel")
-    void toPartialModel(SpexUpdateDto dto, @MappingTarget Spex model);
-
-    SpexCreateDto toCreateDto(SpexImpexDto dto);
-
-    SpexUpdateDto toUpdateDto(SpexImpexDto dto);
 
     @AfterMapping
     default void setRevival(final Spex model, final @MappingTarget SpexDto.SpexDtoBuilder dto) {

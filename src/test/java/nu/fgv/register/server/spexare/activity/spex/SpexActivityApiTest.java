@@ -16,7 +16,6 @@
 
 package nu.fgv.register.server.spexare.activity.spex;
 
-import nu.fgv.register.server.spex.SpexApi;
 import nu.fgv.register.server.spex.SpexDto;
 import nu.fgv.register.server.util.AbstractApiTest;
 import org.junit.jupiter.api.Test;
@@ -32,7 +31,6 @@ import static nu.fgv.register.server.util.TestUuids.uuid;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.linkWithRel;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
@@ -74,20 +72,14 @@ class SpexActivityApiTest extends AbstractApiTest {
             fieldWithPath("title").description("The title of the spex"),
             fieldWithPath("revival").description("The revival flag of the spex"),
             fieldWithPath("posterUrl").description("The poster URL of the spex"),
+            fieldWithPath("retired").description("Whether the record is retired in Spexipedia"),
             linksSubsection
     );
     private final LinksSnippet spexLinks = baseLinks.and(
-            linkWithRel("poster").description("Link to the current spex's poster").optional(),
-            linkWithRel("parent").description("Link to the current spex's parent").optional(),
-            linkWithRel("revivals").description("Link to the current spex's revivals").optional(),
-            linkWithRel("category").description("Link to the current spex's spex category").optional(),
-            linkWithRel("spex").description("Link to paged spex").optional(),
-            linkWithRel("spex-including-revivals").description("Link to paged spex (including revivals)").optional()
+            linkWithRel("spex-activity").description("Link to the spex activity")
     );
     @MockitoBean
     private SpexActivityService service;
-    @MockitoBean
-    private SpexApi spexApi;
 
     @Test
     void should_get() throws Exception {
@@ -252,10 +244,8 @@ class SpexActivityApiTest extends AbstractApiTest {
     @Test
     void should_get_spex() throws Exception {
         final var spex = SpexDto.builder().id(uuid(1)).year("2021").build();
-        final var realSpexApi = new SpexApi(null, null, null, null);
 
         when(service.findSpexBySpexActivity(any(UUID.class), any(UUID.class), any(UUID.class))).thenReturn(spex);
-        when(spexApi.getLinks(any(SpexDto.class), eq(false))).thenReturn(realSpexApi.getLinks(spex, false));
 
         mockMvc
                 .perform(

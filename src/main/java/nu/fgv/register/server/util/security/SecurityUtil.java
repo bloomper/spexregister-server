@@ -37,11 +37,12 @@ import java.util.Optional;
  */
 public class SecurityUtil {
 
-    public static final String ROLE_ADMIN = "ROLE_spexregister_ADMIN";
-    public static final String ROLE_EDITOR = "ROLE_spexregister_EDITOR";
-    public static final String ROLE_USER = "ROLE_spexregister_USER";
-    public static final String ROLE_REVIVAL = "ROLE_spexregister_REVIVAL";
-    public static final String ROLE_MEDIA = "ROLE_spexregister_MEDIA";
+    public static final String ROLE_ADMIN = "ROLE_fgv-spexregister_ADMIN";
+    public static final String ROLE_EDITOR = "ROLE_fgv-spexregister_EDITOR";
+    public static final String ROLE_USER = "ROLE_fgv-spexregister_USER";
+    public static final String ROLE_REVIVAL = "ROLE_fgv-spexregister_REVIVAL";
+    public static final String ROLE_SPEXIPEDIA = "ROLE_fgv-spexregister_SPEXIPEDIA";
+    public static final String ROLE_NOTIFY = "ROLE_fgv-spexregister_NOTIFY";
     public static final List<String> ROLES = List.of(ROLE_ADMIN, ROLE_EDITOR, ROLE_USER);
 
     private SecurityUtil() {
@@ -108,10 +109,21 @@ public class SecurityUtil {
      * @param runnable the work
      */
     public static void runAsSystem(final Runnable runnable) {
+        runAs("system", runnable);
+    }
+
+    /**
+     * Runs as an administrator with the given name, which the audit trail records as who made the changes, e.g.
+     * {@code spexipedia} for the sync of base data, and restores the previous authentication afterwards.
+     *
+     * @param name     who the changes are made by
+     * @param runnable the work
+     */
+    public static void runAs(final String name, final Runnable runnable) {
         final Authentication originalAuth = SecurityContextHolder.getContext().getAuthentication();
         try {
             final UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
-                    "system",
+                    name,
                     null,
                     List.of(new SimpleGrantedAuthority(ROLE_ADMIN))
             );

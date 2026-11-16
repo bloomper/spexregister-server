@@ -16,11 +16,9 @@
 
 package nu.fgv.register.server.task.category;
 
-import org.mapstruct.InheritConfiguration;
 import org.mapstruct.Mapper;
 import org.mapstruct.MapperConfig;
 import org.mapstruct.Mapping;
-import org.mapstruct.MappingTarget;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 import org.mapstruct.ReportingPolicy;
 import org.mapstruct.factory.Mappers;
@@ -43,31 +41,4 @@ public interface TaskCategoryMapper {
     @Mapping(target = "id", source = "uuid")
     TaskCategoryDto toDto(TaskCategory model);
 
-    @Mapping(target = "action", expression = "java(nu.fgv.register.server.impex.model.ImpexAction.UPDATE)")
-    @Mapping(target = "rowNumber", ignore = true)
-    @Mapping(target = "id", source = "uuid")
-    TaskCategoryImpexDto toImpexDto(TaskCategory model);
-
-    @Mapping(target = "id", ignore = true)
-    @Mapping(target = "createdBy", ignore = true)
-    @Mapping(target = "createdAt", ignore = true)
-    @Mapping(target = "lastModifiedBy", ignore = true)
-    @Mapping(target = "lastModifiedAt", ignore = true)
-    @Mapping(target = "version", ignore = true)
-    TaskCategory toModel(TaskCategoryCreateDto dto);
-
-    @Mapping(target = "createdBy", ignore = true)
-    @Mapping(target = "createdAt", ignore = true)
-    @Mapping(target = "lastModifiedBy", ignore = true)
-    @Mapping(target = "lastModifiedAt", ignore = true)
-    @Mapping(target = "version", ignore = true)
-    @Mapping(target = "id", ignore = true)
-    TaskCategory toModel(TaskCategoryUpdateDto dto);
-
-    @InheritConfiguration(name = "toModel")
-    void toPartialModel(TaskCategoryUpdateDto dto, @MappingTarget TaskCategory model);
-
-    TaskCategoryCreateDto toCreateDto(TaskCategoryImpexDto dto);
-
-    TaskCategoryUpdateDto toUpdateDto(TaskCategoryImpexDto dto);
 }

@@ -19,18 +19,20 @@ package nu.fgv.register.server.audit;
 import nu.fgv.register.server.settings.Type;
 import nu.fgv.register.server.settings.TypeRepository;
 import nu.fgv.register.server.settings.TypeType;
-import nu.fgv.register.server.spex.Spex;
-import nu.fgv.register.server.spex.SpexDetails;
-import nu.fgv.register.server.spex.SpexDetailsRepository;
-import nu.fgv.register.server.spex.SpexRepository;
-import nu.fgv.register.server.spex.category.SpexCategory;
-import nu.fgv.register.server.spex.category.SpexCategoryRepository;
 import nu.fgv.register.server.spexare.Spexare;
 import nu.fgv.register.server.spexare.SpexareRepository;
+import nu.fgv.register.server.spexare.activity.Activity;
+import nu.fgv.register.server.spexare.activity.ActivityRepository;
+import nu.fgv.register.server.spexare.activity.task.TaskActivity;
+import nu.fgv.register.server.spexare.activity.task.TaskActivityRepository;
 import nu.fgv.register.server.spexare.address.Address;
 import nu.fgv.register.server.spexare.address.AddressRepository;
 import nu.fgv.register.server.tag.Tag;
 import nu.fgv.register.server.tag.TagRepository;
+import nu.fgv.register.server.task.Task;
+import nu.fgv.register.server.task.TaskRepository;
+import nu.fgv.register.server.task.category.TaskCategory;
+import nu.fgv.register.server.task.category.TaskCategoryRepository;
 import nu.fgv.register.server.user.User;
 import nu.fgv.register.server.util.AbstractAuditable;
 import nu.fgv.register.server.util.AbstractIntegrationTest;
@@ -84,9 +86,10 @@ class AuditDataSeederIntegrationTest extends AbstractIntegrationTest {
     private final SpexareRepository spexareRepository;
     private final AddressRepository addressRepository;
     private final TypeRepository typeRepository;
-    private final SpexRepository spexRepository;
-    private final SpexDetailsRepository spexDetailsRepository;
-    private final SpexCategoryRepository spexCategoryRepository;
+    private final TaskCategoryRepository taskCategoryRepository;
+    private final TaskRepository taskRepository;
+    private final ActivityRepository activityRepository;
+    private final TaskActivityRepository taskActivityRepository;
     private final AuditService auditService;
 
     @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
@@ -99,9 +102,10 @@ class AuditDataSeederIntegrationTest extends AbstractIntegrationTest {
                                           final SpexareRepository spexareRepository,
                                           final AddressRepository addressRepository,
                                           final TypeRepository typeRepository,
-                                          final SpexRepository spexRepository,
-                                          final SpexDetailsRepository spexDetailsRepository,
-                                          final SpexCategoryRepository spexCategoryRepository,
+                                          final TaskCategoryRepository taskCategoryRepository,
+                                          final TaskRepository taskRepository,
+                                          final ActivityRepository activityRepository,
+                                          final TaskActivityRepository taskActivityRepository,
                                           final AuditService auditService,
                                           final ObjectMapper objectMapper) {
         super(jdbcClient, keycloakAdminClient, keycloakClientId, objectMapper);
@@ -110,9 +114,10 @@ class AuditDataSeederIntegrationTest extends AbstractIntegrationTest {
         this.spexareRepository = spexareRepository;
         this.addressRepository = addressRepository;
         this.typeRepository = typeRepository;
-        this.spexRepository = spexRepository;
-        this.spexDetailsRepository = spexDetailsRepository;
-        this.spexCategoryRepository = spexCategoryRepository;
+        this.taskCategoryRepository = taskCategoryRepository;
+        this.taskRepository = taskRepository;
+        this.activityRepository = activityRepository;
+        this.taskActivityRepository = taskActivityRepository;
         this.auditService = auditService;
 
         final EasyRandomParameters parameters = RandomizerSupport.parameters();
@@ -137,9 +142,9 @@ class AuditDataSeederIntegrationTest extends AbstractIntegrationTest {
 
     @BeforeEach
     void setUp() {
-        JdbcTestUtils.deleteFromTables(jdbcClient, "address", "type", "spexare", "tag", "spex", "spex_details", "spex_category",
-                "address_audit", "type_audit", "spexare_audit", "tag_audit", "spex_audit", "spex_details_audit", "spex_category_audit",
-                "revchanges", "revinfo");
+        JdbcTestUtils.deleteFromTables(jdbcClient, "address", "task_activity", "activity", "type", "spexare", "tag", "task",
+                "task_category", "address_audit", "task_activity_audit", "activity_audit", "type_audit", "spexare_audit",
+                "tag_audit", "task_audit", "task_category_audit", "revchanges", "revinfo");
     }
 
     private <T> T asAdmin(final Supplier<T> supplier) {
@@ -150,36 +155,31 @@ class AuditDataSeederIntegrationTest extends AbstractIntegrationTest {
         return result.get();
     }
 
-    private SpexCategory persistSpexCategory() {
-        final var category = random.nextObject(SpexCategory.class);
+    private Task persistTask(final String name) {
+        final TaskCategory category = new TaskCategory();
 
-        category.setId(null);
-        category.setFirstYear("1948");
-        category.setLogo(null);
+        category.setName("Ensemble");
+        category.setActorPresent(true);
 
-        return spexCategoryRepository.save(category);
+        final Task task = new Task();
+
+        task.setName(name);
+        task.setCategory(taskCategoryRepository.save(category));
+
+        return taskRepository.save(task);
     }
 
-    private SpexDetails persistSpexDetails(final SpexCategory category, final String title) {
-        final var details = random.nextObject(SpexDetails.class);
+    private TaskActivity persistTaskActivity(final Task task) {
+        final Activity activity = new Activity();
 
-        details.setId(null);
-        details.setTitle(title);
-        details.setCategory(category);
-        details.setPoster(null);
+        activity.setSpexare(persistSpexare());
 
-        return spexDetailsRepository.save(details);
-    }
+        final TaskActivity taskActivity = new TaskActivity();
 
-    private Spex persistSpex(final SpexDetails details, final String year) {
-        final var spex = random.nextObject(Spex.class);
+        taskActivity.setActivity(activityRepository.save(activity));
+        taskActivity.setTask(task);
 
-        spex.setId(null);
-        spex.setParent(null);
-        spex.setDetails(details);
-        spex.setYear(year);
-
-        return spexRepository.save(spex);
+        return taskActivityRepository.save(taskActivity);
     }
 
     private Tag persistTag() {
@@ -331,6 +331,22 @@ class AuditDataSeederIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
+        void should_give_base_data_no_history_beyond_the_baseline() {
+            IntStream.range(0, 40).forEach(i -> persistTask("Funktion " + i));
+
+            runAsSystem(() -> seeder.seedSampleHistory(jdbcClient, EDITORS));
+
+            final Integer seeded = jdbcClient.sql("SELECT COUNT(*) FROM task_audit").query(Integer.class).single();
+            final Integer modifications = jdbcClient
+                    .sql("SELECT COUNT(*) FROM task_audit WHERE revtype <> 0")
+                    .query(Integer.class)
+                    .single();
+
+            assertThat(seeded).isEqualTo(40);
+            assertThat(modifications).as("Spexipedia keeps the history of base data").isZero();
+        }
+
+        @Test
         void should_leave_the_live_data_untouched() {
             final var tag = persistTag();
             final var originalName = tag.getName();
@@ -423,44 +439,21 @@ class AuditDataSeederIntegrationTest extends AbstractIntegrationTest {
     class SeededAssociationTests {
 
         @Test
-        void should_report_one_creation_when_a_spex_and_its_details_share_a_revision() {
-            final var category = persistSpexCategory();
-            final var details = persistSpexDetails(category, "H. C. Andersen");
-            final var spex = persistSpex(details, "2022");
-
-            runAsSystem(() -> seeder.seedBaseline(jdbcClient));
-
-            final List<RevisionDto> revisions = asAdmin(() -> auditService.findRevisions(AuditedType.SPEX, spex.getUuid().toString()));
-
-            assertThat(revisions)
-                    .as("a spex and its details created in one revision must read as a single event")
-                    .hasSize(1);
-            assertThat(revisions.getFirst().revisionType().name()).isEqualTo("ADD");
-            assertThat(revisions.getFirst().type()).isEqualTo(AuditedType.SPEX);
-            assertThat(revisions.getFirst().changes())
-                    .extracting(FieldChangeDto::field)
-                    .contains("year", "details", "title", "category");
-        }
-
-        @Test
         void should_render_the_label_of_an_association_instead_of_its_id() {
-            final var category = persistSpexCategory();
-            final var details = persistSpexDetails(category, "Carl von Linné");
-            final var spex = persistSpex(details, "2020");
+            final var taskActivity = persistTaskActivity(persistTask("Scenmästare"));
 
             runAsSystem(() -> seeder.seedSampleHistory(jdbcClient, EDITORS));
 
-            final List<RevisionDto> revisions = asAdmin(() -> auditService.findRevisions(AuditedType.SPEX, spex.getUuid().toString()));
+            final List<RevisionDto> revisions = asAdmin(() -> auditService.findRevisions(AuditedType.TASK_ACTIVITY, taskActivity.getUuid().toString()));
 
             assertThat(revisions).isNotEmpty();
             assertThat(revisions)
                     .flatExtracting(RevisionDto::changes)
-                    .filteredOn(change -> "details".equals(change.field()))
+                    .filteredOn(change -> "task".equals(change.field()))
                     .isNotEmpty()
                     .allSatisfy(change -> assertThat(change.newValue())
                             .as("an association must render as its label, never as a bare identifier")
-                            .startsWith("Carl von Linné")
-                            .doesNotMatch("\\d+"));
+                            .isEqualTo("Scenmästare"));
         }
     }
 

@@ -26,7 +26,6 @@ import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
-import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -75,8 +74,10 @@ public class Spex extends AbstractAuditable implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    /**
+     * Spexipedia's id, set by the sync.
+     */
     @Column(name = "uuid", nullable = false, updatable = false, unique = true, length = 36)
-    @Setter(AccessLevel.NONE)
     private UUID uuid = Uuids.v7();
 
     @NotBlank(message = "{spex.year.notEmpty}")
@@ -94,6 +95,18 @@ public class Spex extends AbstractAuditable implements Serializable {
     @IndexedEmbedded
     @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     private SpexDetails details;
+
+    /**
+     * Retired in Spexipedia: readable, but not offered for new activities.
+     */
+    @Column(name = "retired", nullable = false)
+    private boolean retired;
+
+    /**
+     * Spexipedia's public address of the poster (its own, else its original's for a revival).
+     */
+    @Column(name = "poster_url")
+    private String posterUrl;
 
     public boolean isRevival() {
         return parent != null;

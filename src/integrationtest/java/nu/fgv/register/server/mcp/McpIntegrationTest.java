@@ -49,11 +49,6 @@ class McpIntegrationTest extends AbstractIntegrationTest {
 
     private static final String MCP_PATH = "/api/mcp";
     private static final Set<String> EXPECTED_TOOLS = Set.of(
-            "list_tasks", "get_task", "create_task", "update_task", "set_task_category", "delete_task",
-            "list_task_categories", "get_task_category", "create_task_category", "update_task_category", "delete_task_category",
-            "list_spex", "get_spex", "create_spex", "update_spex", "set_spex_category", "delete_spex",
-            "add_spex_revival", "delete_spex_revival",
-            "list_spex_categories", "get_spex_category", "create_spex_category", "update_spex_category", "delete_spex_category",
             "list_news", "get_news", "create_news", "update_news", "delete_news",
             "list_tags", "get_tag", "create_tag", "update_tag", "delete_tag",
             "get_user_statistics"
@@ -239,105 +234,18 @@ class McpIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         void should_return_tool_error_when_role_is_insufficient() {
-            final JsonNode result = callTool(obtainMcpAccessToken(TEST_USER), "create_task", Map.of("name", "Regissör"));
+            final JsonNode result = callTool(obtainMcpAccessToken(TEST_USER), "create_tag", Map.of("name", "Regissör"));
 
             assertThat(result.get("isError").asBoolean()).isTrue();
-            assertThat(JdbcTestUtils.countRowsInTable(jdbcClient, "task")).isZero();
+            assertThat(JdbcTestUtils.countRowsInTable(jdbcClient, "tag")).isZero();
         }
 
         @Test
         void should_return_tool_error_when_input_is_invalid() {
-            final JsonNode result = callTool(obtainMcpAccessToken(TEST_ADMIN), "create_spex", Map.of("year", "86", "title", "Fel år"));
+            final JsonNode result = callTool(obtainMcpAccessToken(TEST_ADMIN), "create_tag", Map.of("name", " "));
 
             assertThat(result.get("isError").asBoolean()).isTrue();
-            assertThat(JdbcTestUtils.countRowsInTable(jdbcClient, "spex")).isZero();
-        }
-
-        @Test
-        void should_partially_update_task_category() {
-            final String token = obtainMcpAccessToken(TEST_ADMIN);
-            final JsonNode category = toolContent(callTool(token, "create_task_category", Map.of("name", "Scen", "actorPresent", true)));
-
-            final JsonNode updated = toolContent(callTool(token, "update_task_category", Map.of("id", category.get("id").asString(), "name", "Scenen")));
-
-            assertThat(updated.get("name").asString()).isEqualTo("Scenen");
-            assertThat(updated.get("actorPresent").asBoolean()).isTrue();
-        }
-
-        @Test
-        void should_create_task_in_category() {
-            final String token = obtainMcpAccessToken(TEST_ADMIN);
-            final JsonNode category = toolContent(callTool(token, "create_task_category", Map.of("name", "Orkester")));
-
-            final JsonNode task = toolContent(callTool(token, "create_task", Map.of("name", "Trumpet", "categoryId", category.get("id").asString())));
-
-            assertThat(task.get("name").asString()).isEqualTo("Trumpet");
-            assertThat(task.get("category").get("name").asString()).isEqualTo("Orkester");
-        }
-
-        @Test
-        void should_list_tasks_with_category() {
-            final String token = obtainMcpAccessToken(TEST_ADMIN);
-            final JsonNode category = toolContent(callTool(token, "create_task_category", Map.of("name", "Orkester")));
-            callTool(token, "create_task", Map.of("name", "Trumpet", "categoryId", category.get("id").asString()));
-            callTool(token, "create_task", Map.of("name", "Affisch"));
-
-            final JsonNode listed = toolContent(callTool(obtainMcpAccessToken(TEST_USER), "list_tasks", Map.of()));
-
-            assertThat(listed.get("totalElements").asLong()).isEqualTo(2);
-            assertThat(listed.get("items").get(0).get("name").asString()).isEqualTo("Affisch");
-            assertThat(listed.get("items").get(0).hasNonNull("category")).isFalse();
-            assertThat(listed.get("items").get(1).get("name").asString()).isEqualTo("Trumpet");
-            assertThat(listed.get("items").get(1).get("category").get("name").asString()).isEqualTo("Orkester");
-        }
-
-        @Test
-        void should_filter_tasks_by_category() {
-            final String token = obtainMcpAccessToken(TEST_ADMIN);
-            final JsonNode category = toolContent(callTool(token, "create_task_category", Map.of("name", "Orkester")));
-            callTool(token, "create_task", Map.of("name", "Trumpet", "categoryId", category.get("id").asString()));
-            callTool(token, "create_task", Map.of("name", "Affisch"));
-
-            final JsonNode listed = toolContent(callTool(token, "list_tasks", Map.of("filter", "category.name:Orkester")));
-
-            assertThat(listed.get("totalElements").asLong()).isEqualTo(1);
-            assertThat(listed.get("items").get(0).get("name").asString()).isEqualTo("Trumpet");
-        }
-
-        @Test
-        void should_list_spex_without_revivals_by_default() {
-            final String adminToken = obtainMcpAccessToken(TEST_ADMIN);
-            final JsonNode spex = toolContent(callTool(adminToken, "create_spex", Map.of("year", "1986", "title", "Napoleon")));
-            final String spexId = spex.get("id").asString();
-
-            toolContent(callTool(adminToken, "add_spex_revival", Map.of("spexId", spexId, "year", "2006")));
-
-            final String userToken = obtainMcpAccessToken(TEST_USER);
-            final JsonNode originals = toolContent(callTool(userToken, "list_spex", Map.of()));
-            final JsonNode all = toolContent(callTool(userToken, "list_spex", Map.of("includeRevivals", true)));
-            final JsonNode details = toolContent(callTool(userToken, "get_spex", Map.of("id", spexId)));
-
-            assertThat(originals.get("totalElements").asLong()).isEqualTo(1);
-            assertThat(all.get("totalElements").asLong()).isEqualTo(2);
-            assertThat(details.get("revivals").get(0).get("year").asString()).isEqualTo("2006");
-        }
-
-        @Test
-        void should_list_spex_with_category() {
-            final String adminToken = obtainMcpAccessToken(TEST_ADMIN);
-            final JsonNode category = toolContent(callTool(adminToken, "create_spex_category", Map.of("name", "Chalmersspexet", "firstYear", "1948")));
-            final JsonNode spex = toolContent(callTool(adminToken, "create_spex", Map.of("year", "1986", "title", "Napoleon", "categoryId", category.get("id").asString())));
-            callTool(adminToken, "create_spex", Map.of("year", "1990", "title", "Anna"));
-
-            toolContent(callTool(adminToken, "add_spex_revival", Map.of("spexId", spex.get("id").asString(), "year", "2006")));
-
-            final JsonNode listed = toolContent(callTool(obtainMcpAccessToken(TEST_USER), "list_spex", Map.of("includeRevivals", true)));
-
-            assertThat(listed.get("totalElements").asLong()).isEqualTo(3);
-            assertThat(listed.get("items").get(0).get("category").get("name").asString()).isEqualTo("Chalmersspexet");
-            assertThat(listed.get("items").get(1).hasNonNull("category")).isFalse();
-            assertThat(listed.get("items").get(2).get("revival").asBoolean()).isTrue();
-            assertThat(listed.get("items").get(2).get("category").get("name").asString()).isEqualTo("Chalmersspexet");
+            assertThat(JdbcTestUtils.countRowsInTable(jdbcClient, "tag")).isZero();
         }
 
         @Test

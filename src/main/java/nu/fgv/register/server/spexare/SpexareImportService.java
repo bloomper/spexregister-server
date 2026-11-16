@@ -84,6 +84,10 @@ import static org.springframework.util.StringUtils.hasText;
 public class SpexareImportService extends AbstractImportService {
 
     private static final String SPEXARE = "spexare.impex.entityName";
+    // Base data is kept in Spexipedia (spexregister-spec, docs/base-data-and-memberships.md, 3.2)
+    private static final List<String> LOOKUP_SHEETS = List.of("spex.impex.sheetName", "spex.impex.revival.sheetName", "task.impex.sheetName");
+    private static final List<String> REFUSED_SHEETS = List.of("spexCategory.impex.sheetName", "taskCategory.impex.sheetName");
+    private static final List<Locale> SHEET_LANGUAGES = List.of(Locale.of("sv"), Locale.ENGLISH);
 
     private final SpexareService service;
     private final AddressService addressService;
@@ -233,6 +237,33 @@ public class SpexareImportService extends AbstractImportService {
                         ))
                         .build()
         );
+    }
+
+    /**
+     * Spex, revivals, spex categories, tasks and task categories are kept in Spexipedia. The spexare export adds
+     * read-only sheets of spex, revivals and tasks to look them up by; those are left alone with a warning, so an
+     * exported file can be imported again. Sheets of spex categories or task categories never come from that export, so
+     * a file with one is refused as a whole.
+     */
+    @Override
+    protected List<SheetRefusal> refuseSheets(final List<String> sheetNames, final Locale locale) {
+        final List<SheetRefusal> refusals = new ArrayList<>();
+
+        sheetNames.forEach(sheetName -> {
+            if (isSheetOf(sheetName, LOOKUP_SHEETS)) {
+                refusals.add(new SheetRefusal(messageSource.getMessage("impex.import.baseDataSheet.ignored", new Object[]{sheetName}, locale), false));
+            } else if (isSheetOf(sheetName, REFUSED_SHEETS)) {
+                refusals.add(new SheetRefusal(messageSource.getMessage("impex.import.baseDataSheet.refused", new Object[]{sheetName}, locale), true));
+            }
+        });
+
+        return refusals;
+    }
+
+    private boolean isSheetOf(final String sheetName, final List<String> keys) {
+        return keys.stream()
+                .flatMap(key -> SHEET_LANGUAGES.stream().map(language -> messageSource.getMessage(key, null, key, language)))
+                .anyMatch(sheetName::equalsIgnoreCase);
     }
 
     @Override

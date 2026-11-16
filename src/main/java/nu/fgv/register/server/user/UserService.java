@@ -67,6 +67,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -128,6 +129,7 @@ public class UserService {
     private final String keycloakClientId;
     private final PlatformTransactionManager transactionManager;
     private final MaintenanceJobTracker tracker;
+    private final JdbcClient jdbcClient;
     @Value("${spexregister.keycloak.realm}")
     private String keycloakRealm;
     @Value("${spexregister.keycloak.pending-approval-group}")
@@ -708,6 +710,22 @@ public class UserService {
     }
 
     /**
+     * Turns automatic linking by email on or off for the user.
+     *
+     * @param id      the user id
+     * @param enabled whether the sync may link the user to a spexare by email
+     */
+    @RequiresAdmin
+    public void setSpexareAutoLink(final UUID id, final boolean enabled) {
+        final User user = repository.findByUuid0(id)
+                .map(permissionService::checkWritePermission)
+                .orElseThrow(() -> new ResourceNotFoundException(User.class, id));
+
+        user.setSpexareAutoLink(enabled);
+        repository.save(user);
+    }
+
+    /**
      * Unlinks the user from their spexare.
      *
      * @param id the user id
@@ -721,6 +739,8 @@ public class UserService {
                     .filter(user -> user.getSpexare() != null)
                     .ifPresent(user -> {
                         user.setSpexare(null);
+                        // Removed by hand: the sync must not link the user again by email
+                        user.setSpexareAutoLink(false);
                         repository.save(user);
                     });
         } else {
@@ -780,8 +800,67 @@ public class UserService {
                         }
                     });
 
-            log.info("Finished user sync job (members: {}, synced: {}, removed: {}, named: {})", members.size(), synced.get(), removed.get(), named.get());
+            final AtomicInteger linked = new AtomicInteger();
+
+            repository.findAll().stream()
+                    .filter(user -> user.getSpexare() == null && user.isSpexareAutoLink())
+                    .filter(user -> representations.containsKey(user.getExternalId()))
+                    .forEach(user -> {
+                        try {
+                            if (Boolean.TRUE.equals(inTransactionResult(() -> autoLink(user.getUuid(), representations.get(user.getExternalId()))))) {
+                                linked.incrementAndGet();
+                            }
+                        } catch (final Exception e) {
+                            log.warn("Could not link user {} to a spexare by email", user.getExternalId(), e);
+                        }
+                    });
+
+            log.info("Finished user sync job (members: {}, synced: {}, removed: {}, named: {}, linked: {})", members.size(),
+                    synced.get(), removed.get(), named.get(), linked.get());
         }));
+    }
+
+    /**
+     * Links a user without a spexare to the one spexare whose address has the user's email, when Keycloak has verified
+     * the email and exactly one spexare without a user has it (ignoring case). Nothing is linked when several spexare
+     * share the address, when the user already has a spexare, or after an admin has removed the user's link by hand.
+     *
+     * @param id             the user
+     * @param representation the user's Keycloak account
+     * @return whether a link was made
+     */
+    boolean autoLink(final UUID id, final UserRepresentation representation) {
+        if (!Boolean.TRUE.equals(representation.isEmailVerified()) || !hasText(representation.getEmail())) {
+            return false;
+        }
+
+        final User user = repository.findByUuid(id).orElse(null);
+
+        if (user == null || user.getSpexare() != null || !user.isSpexareAutoLink()) {
+            return false;
+        }
+
+        final List<Long> candidates = jdbcClient.sql("""
+                        SELECT DISTINCT a.spexare_id FROM address a
+                        WHERE LOWER(TRIM(a.email_address)) = LOWER(TRIM(:email))
+                          AND a.spexare_id NOT IN (SELECT u.spexare_id FROM user u WHERE u.spexare_id IS NOT NULL)""")
+                .param("email", representation.getEmail())
+                .query(Long.class)
+                .list();
+
+        if (candidates.size() != 1) {
+            if (candidates.size() > 1) {
+                log.info("Did not link user {}: {} spexare have its email address", user.getExternalId(), candidates.size());
+            }
+            return false;
+        }
+        return spexareRepository.findById(candidates.getFirst()).map(spexare -> {
+            user.setSpexare(spexare);
+            repository.save(user);
+            fillMissingNames(user.getExternalId(), spexare);
+            log.info("Linked user {} to spexare {} by email address", user.getExternalId(), spexare.getUuid());
+            return true;
+        }).orElse(false);
     }
 
     // Keycloak returns role members a page at a time; asking once only ever yields the first page.
@@ -860,6 +939,13 @@ public class UserService {
             repository.delete(user);
             log.info("Removed user {} that no longer exists in Keycloak", user.getExternalId());
         });
+    }
+
+    private <T> T inTransactionResult(final java.util.function.Supplier<T> work) {
+        final TransactionTemplate template = new TransactionTemplate(transactionManager);
+
+        template.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+        return template.execute(_ -> work.get());
     }
 
     private void inTransaction(final Runnable work) {

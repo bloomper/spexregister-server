@@ -1,4 +1,4 @@
-mutation spexActivityCreate ($spexareId: ID!, $activityId: ID!, $spexId: ID!, $first: Int = 10) {
+mutation spexActivityCreate ($spexareId: ID!, $activityId: ID!, $spexId: ID!) {
     spexActivityCreate(spexareId: $spexareId, activityId: $activityId, spexId: $spexId) {
         id
         spex {
@@ -32,26 +32,6 @@ mutation spexActivityCreate ($spexareId: ID!, $activityId: ID!, $spexId: ID!, $f
                 createdAt
                 lastModifiedBy
                 lastModifiedAt
-            }
-            revivalsPaged (first: $first) {
-                edges {
-                    cursor
-                    node {
-                        id
-                        year
-                        createdBy
-                        createdAt
-                        lastModifiedBy
-                        lastModifiedAt
-                    }
-                }
-                pageInfo {
-                    hasPreviousPage
-                    hasNextPage
-                    startCursor
-                    endCursor
-                }
-                totalCount
             }
         }
         createdBy

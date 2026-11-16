@@ -21,10 +21,12 @@ import org.springframework.stereotype.Component;
 
 import static nu.fgv.register.server.security.policy.Caller.ADMIN;
 import static nu.fgv.register.server.security.policy.Caller.EDITOR;
+import static nu.fgv.register.server.security.policy.Caller.SPEXIPEDIA;
 import static nu.fgv.register.server.security.policy.Caller.USER;
 
 /**
- * Everyone with a role reads spex categories; only administrators change them.
+ * Everyone with a role but the revival service reads spex categories; nobody changes them. Read only: Spexipedia
+ * keeps base data, and Spexregister's copy is written only by the sync.
  *
  * @author Anders Jacobsson
  * @since 2.0
@@ -34,8 +36,7 @@ public class SpexCategoryPolicy extends ReferenceDataPolicy<SpexCategory> {
 
     public SpexCategoryPolicy() {
         super(SpexCategory.class, RoleRules.builder()
-                .read(USER, EDITOR, ADMIN)
-                .administer(ADMIN)
+                .read(USER, EDITOR, ADMIN, SPEXIPEDIA)
                 .build());
     }
 }

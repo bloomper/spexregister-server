@@ -24,6 +24,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import nu.fgv.register.server.image.Image;
 import nu.fgv.register.server.security.policy.PermissionService;
+import nu.fgv.register.server.spex.character.SpexCharacter;
 import nu.fgv.register.server.spexare.Spexare;
 import nu.fgv.register.server.spexare.SpexareSensitiveData;
 import nu.fgv.register.server.util.error.BadRequestException;
@@ -55,7 +56,6 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -126,27 +126,28 @@ public class AuditService {
     }
 
     /**
-     * The revisions of the entity, merged with those of the entities it points at such as a spex's details, newest
-     * first.
+     * The revisions of the entity, newest first.
      *
      * @param type  the entity type
      * @param rawId the entity id
      * @return the revisions
      * @throws org.springframework.security.access.AccessDeniedException when the caller may not read the entity, or it
      *                                                                   is gone and the caller is not an administrator
+     * @throws nu.fgv.register.server.util.error.BadRequestException     when the type is base data, whose history
+     *                                                                   Spexipedia keeps
      */
     @RequiresAdminOrEditorOrUser
     public List<RevisionDto> findRevisions(final AuditedType type, final String rawId) {
-        final AuditedEntityDescriptor descriptor = registry.require(type);
+        final AuditedEntityDescriptor descriptor = requireOwnHistory(type);
         final Object id = parseId(descriptor, rawId);
 
         authorizeRead(descriptor, id);
 
-        final List<RevisionDto> revisions = new ArrayList<>(toRevisionDtos(descriptor, id, triplesFor(descriptor, id)));
+        final List<RevisionDto> revisions = toRevisionDtos(descriptor, id, triplesFor(descriptor, id)).stream()
+                .sorted(Comparator.comparing(RevisionDto::revision).reversed())
+                .toList();
 
-        descriptor.references().forEach(reference -> revisions.addAll(referenceRevisions(descriptor, id, reference)));
-
-        return redactSensitiveData(descriptor, id, mergeByRevision(descriptor, revisions));
+        return redactSensitiveData(descriptor, id, revisions);
     }
 
     private List<RevisionDto> redactSensitiveData(final AuditedEntityDescriptor descriptor, final Object id, final List<RevisionDto> revisions) {
@@ -174,64 +175,6 @@ public class AuditService {
                 .toList();
     }
 
-    private List<RevisionDto> mergeByRevision(final AuditedEntityDescriptor descriptor, final List<RevisionDto> revisions) {
-        final Map<Long, List<RevisionDto>> byRevision = new LinkedHashMap<>();
-
-        revisions.forEach(revision -> byRevision.computeIfAbsent(revision.revision(), _ -> new ArrayList<>()).add(revision));
-
-        return byRevision.values().stream()
-                .map(group -> group.size() == 1 ? group.getFirst() : merge(descriptor, group))
-                .sorted(Comparator.comparing(RevisionDto::revision).reversed())
-                .toList();
-    }
-
-    private RevisionDto merge(final AuditedEntityDescriptor descriptor, final List<RevisionDto> group) {
-        final RevisionDto anchor = group.stream()
-                .filter(revision -> revision.type() == descriptor.type())
-                .findFirst()
-                .orElseGet(group::getFirst);
-
-        final List<FieldChangeDto> changes = group.stream()
-                .flatMap(revision -> revision.changes().stream())
-                .sorted(Comparator.comparing(FieldChangeDto::field))
-                .toList();
-
-        return RevisionDto.builder()
-                .revision(anchor.revision())
-                .type(anchor.type())
-                .entityId(anchor.entityId())
-                .entityLabel(anchor.entityLabel())
-                .revisionType(anchor.revisionType())
-                .modifiedAt(anchor.modifiedAt())
-                .modifiedBy(anchor.modifiedBy())
-                .changes(changes)
-                .build();
-    }
-
-    private List<RevisionDto> referenceRevisions(final AuditedEntityDescriptor descriptor,
-                                                 final Object id,
-                                                 final AuditedReferenceDescriptor reference) {
-        final AuditedEntityDescriptor target = registry.require(reference.type());
-        final Set<Object> referenced = new LinkedHashSet<>();
-
-        for (final Object[] triple : triplesFor(descriptor, id)) {
-            final Object value = differ.readProperty(descriptor.entityClass(), reference.property(), triple[0]);
-
-            if (value != null) {
-                final Object identifier = entityManagerFactory.getPersistenceUnitUtil().getIdentifier(value);
-
-                if (identifier != null) {
-                    referenced.add(identifier);
-                }
-            }
-        }
-
-        return referenced.stream()
-                .map(referencedId -> toRevisionDtos(target, referencedId, triplesFor(target, referencedId)))
-                .flatMap(List::stream)
-                .toList();
-    }
-
     /**
      * The revisions of the records of a type that belong to the entity, and of those that belong to them in turn,
      * newest first; for example the activities of a spexare with their spex and task activities.
@@ -243,7 +186,7 @@ public class AuditService {
      */
     @RequiresAdminOrEditorOrUser
     public List<RevisionDto> findRelatedRevisions(final AuditedType type, final String rawId, final AuditedType relatedType) {
-        final AuditedEntityDescriptor descriptor = registry.require(type);
+        final AuditedEntityDescriptor descriptor = requireOwnHistory(type);
         final Object id = parseId(descriptor, rawId);
 
         authorizeRead(descriptor, id);
@@ -308,7 +251,7 @@ public class AuditService {
     }
 
     /**
-     * A binary value as it was in the revision, such as a spexare's image or a spex's poster.
+     * A binary value as it was in the revision, such as a spexare's image.
      *
      * @param type     the entity type
      * @param rawId    the entity id
@@ -319,43 +262,22 @@ public class AuditService {
      */
     @RequiresAdminOrEditorOrUser
     public BinaryValueDto findBinary(final AuditedType type, final String rawId, final long revision, final String field) {
-        final AuditedEntityDescriptor descriptor = registry.require(type);
+        final AuditedEntityDescriptor descriptor = requireOwnHistory(type);
         final Object id = parseId(descriptor, rawId);
 
         authorizeRead(descriptor, id);
 
+        if (!differ.isBinaryProperty(descriptor.entityClass(), field)) {
+            throw new BadRequestException("%s has no binary property %s".formatted(type, field));
+        }
+
         final Object snapshot = envers.findAtRevision(descriptor.entityClass(), id, revision);
 
-        if (differ.isBinaryProperty(descriptor.entityClass(), field)) {
-            if (snapshot == null) {
-                throw new BadRequestException("Unknown revision %d for %s %s".formatted(revision, type, id));
-            }
-
-            return binaryOf(descriptor.entityClass(), snapshot, field, descriptor, id);
+        if (snapshot == null) {
+            throw new BadRequestException("Unknown revision %d for %s %s".formatted(revision, type, id));
         }
 
-        for (final AuditedReferenceDescriptor reference : descriptor.references()) {
-            if (!differ.isBinaryProperty(reference.entityClass(), field)) {
-                continue;
-            }
-
-            final Object holder = snapshot != null ? snapshot : descriptor.findCurrent().apply(id).orElse(null);
-
-            if (holder == null) {
-                continue;
-            }
-
-            final Optional<Object> referencedId = referencedIdAt(descriptor, reference, holder);
-
-            if (referencedId.isPresent()) {
-                final AuditedEntityDescriptor target = registry.require(reference.type());
-                final Object referencedSnapshot = requireSnapshot(target, referencedId.get(), revision);
-
-                return binaryOf(target.entityClass(), referencedSnapshot, field, target, referencedId.get());
-            }
-        }
-
-        throw new BadRequestException("%s has no binary property %s".formatted(type, field));
+        return binaryOf(descriptor.entityClass(), snapshot, field, descriptor, id);
     }
 
     private BinaryValueDto binaryOf(final Class<?> entityClass,
@@ -423,15 +345,37 @@ public class AuditService {
     }
 
     /**
-     * @return everyone who has made a revision, by name
+     * @return everyone who has made a revision in the change log, by name
      */
     @RequiresAdmin
     public List<String> findAuthors() {
         return entityManager.createQuery("""
-                        SELECT DISTINCT r.modifiedBy FROM AuditRevisionEntity r
-                        WHERE r.modifiedBy IS NOT NULL ORDER BY r.modifiedBy
+                        SELECT DISTINCT r.modifiedBy FROM AuditRevisionEntity r JOIN r.modifiedEntityNames n
+                        WHERE r.modifiedBy IS NOT NULL AND n NOT IN :baseData ORDER BY r.modifiedBy
                         """, String.class)
+                .setParameter("baseData", baseDataEntityNames())
                 .getResultList();
+    }
+
+    /**
+     * The entities whose changes are left out of the change log: base data and characters, which Spexipedia keeps and
+     * only the sync writes here.
+     */
+    private Set<String> baseDataEntityNames() {
+        final Set<String> names = new HashSet<>();
+
+        AuditedType.BASE_DATA.forEach(type -> names.add(registry.require(type).entityClass().getName()));
+        names.add(SpexCharacter.class.getName());
+
+        return Set.copyOf(names);
+    }
+
+    private AuditedEntityDescriptor requireOwnHistory(final AuditedType type) {
+        if (type.isBaseData()) {
+            throw new BadRequestException("%s is kept in Spexipedia, which has its history".formatted(type));
+        }
+
+        return registry.require(type);
     }
 
     private FeedCriteria criteriaFor(final RevisionFeedFilter filter) {
@@ -449,7 +393,14 @@ public class AuditService {
             parameters.put("to", startOfDay(filter.to().plusDays(1)).toEpochMilli());
         }
 
+        // Revisions that changed nothing but base data are Spexipedia's history, not this change log's
+        clauses.add("EXISTS (SELECT 1 FROM AuditRevisionEntity o JOIN o.modifiedEntityNames n WHERE o = r AND n NOT IN :baseData)");
+        parameters.put("baseData", baseDataEntityNames());
+
         if (filter.type() != null) {
+            if (filter.type().isBaseData()) {
+                throw new BadRequestException("%s is kept in Spexipedia, which has its history".formatted(filter.type()));
+            }
             clauses.add(":entityName MEMBER OF r.modifiedEntityNames");
             parameters.put("entityName", registry.require(filter.type()).entityClass().getName());
         }
@@ -511,7 +462,7 @@ public class AuditService {
         for (final String entityName : revisionEntity.getModifiedEntityNames()) {
             final AuditedType type = registry.byEntityName(entityName);
 
-            if (type != null) {
+            if (type != null && !type.isBaseData()) {
                 final AuditedEntityDescriptor descriptor = registry.require(type);
                 final List<Object[]> triples = envers.revisionTriples(descriptor.entityClass(), false, true,
                         q -> q.add(AuditEntity.revisionNumber().eq(revision)).setMaxResults(limitPerType + 1));
@@ -621,7 +572,7 @@ public class AuditService {
      */
     @RequiresAdmin
     public RestorePreviewDto preview(final AuditedType type, final String rawId, final long revision, final boolean cascade) {
-        final AuditedEntityDescriptor descriptor = registry.require(type);
+        final AuditedEntityDescriptor descriptor = requireOwnHistory(type);
         final Object id = parseId(descriptor, rawId);
         final Object current = authorizeWrite(descriptor, id);
         final Object snapshot = requireSnapshot(descriptor, id, revision);
@@ -636,8 +587,6 @@ public class AuditService {
                 .changes(differ.diff(descriptor.entityClass(), current, snapshot))
                 .build());
 
-        previewReferences(descriptor, snapshot, revision, entries);
-
         if (cascade) {
             previewChildren(descriptor.children(), current, id, revision, entries, warnings);
         }
@@ -649,7 +598,7 @@ public class AuditService {
     }
 
     /**
-     * Restores the entity's audited fields, and those of the entities it points at, to the revision. With cascade, the
+     * Restores the entity's audited fields to the revision. With cascade, the
      * records that belong to it are restored too: those changed are put back, those added since are removed and those
      * removed since are re-created with the same external ids. The entity itself must still exist. Recorded as a
      * {@link AuditSource#RESTORE} revision.
@@ -667,7 +616,7 @@ public class AuditService {
                 .withSource(AuditSource.RESTORE)
                 .withCommentIfAbsent(restoreComment(revision, cascade)));
 
-        final AuditedEntityDescriptor descriptor = registry.require(type);
+        final AuditedEntityDescriptor descriptor = requireOwnHistory(type);
         final Object id = parseId(descriptor, rawId);
         final Object current = authorizeWrite(descriptor, id);
         final Object snapshot = requireSnapshot(descriptor, id, revision);
@@ -676,8 +625,6 @@ public class AuditService {
 
         applyProperties(descriptor.entityClass(), snapshot, current, context);
         context.updated++;
-
-        restoreReferences(descriptor, snapshot, revision, context);
 
         if (cascade) {
             restoreChildren(descriptor.children(), current, id, revision, context);
@@ -692,32 +639,6 @@ public class AuditService {
                 .deleted(context.deleted)
                 .warnings(List.copyOf(context.warnings))
                 .build();
-    }
-
-    private void previewReferences(final AuditedEntityDescriptor descriptor,
-                                   final Object snapshot,
-                                   final long revision,
-                                   final List<RestorePreviewEntryDto> entries) {
-        for (final AuditedReferenceDescriptor reference : descriptor.references()) {
-            referencedIdAt(descriptor, reference, snapshot).ifPresent(referencedId -> {
-                final AuditedEntityDescriptor target = registry.require(reference.type());
-                final Object referencedSnapshot = envers.findAtRevision(target.entityClass(), referencedId, revision);
-                final Object referencedCurrent = target.findCurrent().apply(referencedId).orElse(null);
-
-                if (referencedSnapshot != null && referencedCurrent != null) {
-                    final List<FieldChangeDto> changes = differ.diff(target.entityClass(), referencedCurrent, referencedSnapshot);
-
-                    if (!changes.isEmpty()) {
-                        entries.add(RestorePreviewEntryDto.builder()
-                                .type(target.type())
-                                .id(externalIdOf(target.entityClass(), referencedId, referencedCurrent))
-                                .action(RestoreAction.UPDATE)
-                                .changes(changes)
-                                .build());
-                    }
-                }
-            });
-        }
     }
 
     private void previewChildren(final List<AuditedChildDescriptor> children,
@@ -767,34 +688,6 @@ public class AuditService {
                 }
             }
         }
-    }
-
-    private void restoreReferences(final AuditedEntityDescriptor descriptor,
-                                   final Object snapshot,
-                                   final long revision,
-                                   final RestoreContext context) {
-        for (final AuditedReferenceDescriptor reference : descriptor.references()) {
-            referencedIdAt(descriptor, reference, snapshot).ifPresent(referencedId -> {
-                final AuditedEntityDescriptor target = registry.require(reference.type());
-                final Object referencedSnapshot = envers.findAtRevision(target.entityClass(), referencedId, revision);
-                final Object referencedCurrent = target.findCurrent().apply(referencedId).orElse(null);
-
-                if (referencedSnapshot != null && referencedCurrent != null) {
-                    applyProperties(target.entityClass(), referencedSnapshot, referencedCurrent, context);
-                    context.updated++;
-                }
-            });
-        }
-    }
-
-    private Optional<Object> referencedIdAt(final AuditedEntityDescriptor descriptor,
-                                            final AuditedReferenceDescriptor reference,
-                                            final Object snapshot) {
-        final Object value = differ.readProperty(descriptor.entityClass(), reference.property(), snapshot);
-
-        return value == null
-                ? Optional.empty()
-                : Optional.ofNullable(entityManagerFactory.getPersistenceUnitUtil().getIdentifier(value));
     }
 
     private void restoreChildren(final List<AuditedChildDescriptor> children,
@@ -954,7 +847,7 @@ public class AuditService {
         for (final String entityName : revisionEntity.getModifiedEntityNames()) {
             final AuditedType type = registry.byEntityName(entityName);
 
-            if (type != null) {
+            if (type != null && !type.isBaseData()) {
                 types.add(type);
             }
         }

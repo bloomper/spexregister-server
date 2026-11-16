@@ -56,7 +56,7 @@ class SecurityContextStepListenerTest {
                 .addString("authorities", ROLE_EDITOR)
                 .addString("requestorEmail", "editor@example.com", false)
                 .addString("requestorUsername", "editor", false)
-                .addString("requestorClient", "spexregister", false));
+                .addString("requestorClient", "fgv-spexregister", false));
 
         listener.beforeStep(stepExecution);
 

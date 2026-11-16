@@ -16,51 +16,28 @@
 
 package nu.fgv.register.server.security.policy;
 
-import nu.fgv.register.server.permission.PermissionGrants;
 import nu.fgv.register.server.spex.Spex;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
 import static nu.fgv.register.server.security.policy.Caller.ADMIN;
 import static nu.fgv.register.server.security.policy.Caller.EDITOR;
-import static nu.fgv.register.server.security.policy.Caller.MEDIA;
 import static nu.fgv.register.server.security.policy.Caller.REVIVAL;
+import static nu.fgv.register.server.security.policy.Caller.SPEXIPEDIA;
 import static nu.fgv.register.server.security.policy.Caller.USER;
 
 /**
- * Every role reads spex, the media service included; editors and the revival service change them and administrators administer them. Permission
- * grants on a spex add rights on that spex.
+ * Every role reads spex, Spexipedia included; nobody changes them. Read only: Spexipedia keeps base data, and
+ * Spexregister's copy is written only by the sync.
  *
  * @author Anders Jacobsson
  * @since 2.0
  */
 @Component
-public class SpexPolicy implements AccessPolicy<Spex> {
+public class SpexPolicy extends ReferenceDataPolicy<Spex> {
 
-    private static final RoleRules RULES = RoleRules.builder()
-            .read(USER, EDITOR, ADMIN, REVIVAL, MEDIA)
-            .write(EDITOR, REVIVAL)
-            .administer(ADMIN)
-            .build();
-
-    private final PermissionGrants grants;
-
-    public SpexPolicy(final PermissionGrants grants) {
-        this.grants = grants;
-    }
-
-    @Override
-    public Class<Spex> type() {
-        return Spex.class;
-    }
-
-    @Override
-    public Specification<Spex> permitted(final Caller caller, final Permission permission) {
-        return RULES.allows(caller, permission) ? RoleRules.all() : grants.coveringSpex(caller, permission);
-    }
-
-    @Override
-    public boolean permits(final Caller caller, final Spex spex, final Permission permission) {
-        return RULES.allows(caller, permission) || grants.covers(caller, spex, permission);
+    public SpexPolicy() {
+        super(Spex.class, RoleRules.builder()
+                .read(USER, EDITOR, ADMIN, REVIVAL, SPEXIPEDIA)
+                .build());
     }
 }

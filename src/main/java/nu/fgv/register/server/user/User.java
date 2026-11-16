@@ -85,6 +85,13 @@ public class User extends AbstractAuditable implements Serializable {
     @Nullable
     private Spexare spexare;
 
+    /**
+     * Whether the user may be linked to a spexare automatically, by email address. Cleared when an admin removes the
+     * user's link by hand, so that it is not made again.
+     */
+    @Column(name = "spexare_auto_link", nullable = false)
+    private boolean spexareAutoLink = true;
+
     @Override
     public boolean equals(final @Nullable Object o) {
         if (this == o) {

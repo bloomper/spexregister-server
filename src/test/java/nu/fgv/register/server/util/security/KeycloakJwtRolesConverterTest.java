@@ -47,19 +47,19 @@ class KeycloakJwtRolesConverterTest {
 
     @Test
     void should_convert_resource_roles() {
-        final List<String> authorities = convert(Map.of("resource_access", Map.of("spexregister", Map.of("roles", List.of("ADMIN", "USER")))));
+        final List<String> authorities = convert(Map.of("resource_access", Map.of("fgv-spexregister", Map.of("roles", List.of("ADMIN", "USER")))));
 
-        assertThat(authorities, containsInAnyOrder("ROLE_spexregister_ADMIN", "ROLE_spexregister_USER"));
+        assertThat(authorities, containsInAnyOrder("ROLE_fgv-spexregister_ADMIN", "ROLE_fgv-spexregister_USER"));
     }
 
     @Test
     void should_convert_both_realm_and_resource_roles() {
         final List<String> authorities = convert(Map.of(
                 "realm_access", Map.of("roles", List.of("offline_access")),
-                "resource_access", Map.of("spexregister", Map.of("roles", List.of("USER")))
+                "resource_access", Map.of("fgv-spexregister", Map.of("roles", List.of("USER")))
         ));
 
-        assertThat(authorities, containsInAnyOrder("ROLE_realm_offline_access", "ROLE_spexregister_USER"));
+        assertThat(authorities, containsInAnyOrder("ROLE_realm_offline_access", "ROLE_fgv-spexregister_USER"));
     }
 
     @Test
@@ -91,11 +91,11 @@ class KeycloakJwtRolesConverterTest {
         final Map<String, Object> resourceAccess = new HashMap<>();
         resourceAccess.put("account", Map.of());
         resourceAccess.put("broker", null);
-        resourceAccess.put("spexregister", Map.of("roles", List.of("USER")));
+        resourceAccess.put("fgv-spexregister", Map.of("roles", List.of("USER")));
 
         final List<String> authorities = convert(Map.of("resource_access", resourceAccess));
 
-        assertThat(authorities, contains("ROLE_spexregister_USER"));
+        assertThat(authorities, contains("ROLE_fgv-spexregister_USER"));
     }
 
     @Test

@@ -27,7 +27,10 @@ import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUserOrRevival
 import org.springframework.data.domain.Sort;
 import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.LocalContextValue;
+import org.springframework.graphql.data.ArgumentValue;
+import org.springframework.graphql.data.method.annotation.BatchMapping;
 import org.springframework.graphql.data.method.annotation.MutationMapping;
+import org.springframework.graphql.data.method.annotation.QueryMapping;
 import org.springframework.graphql.data.method.annotation.SchemaMapping;
 import org.springframework.graphql.data.query.ScrollSubrange;
 import org.springframework.stereotype.Controller;
@@ -52,12 +55,21 @@ import static nu.fgv.register.server.util.graphql.GraphqlUtil.extractScrollReque
 public class ActorGraphqlApi {
 
     private final ActorService service;
+    private final ActorCharacterService characterService;
 
+    // characterId is bound by @Argument name under a different Java name: Spring GraphQL's schema inspection matches
+    // parameters by Java name and does not see through ArgumentValue, so it would report a false nullness error.
     @MutationMapping("actorCreate")
     @RequiresAdminOrEditorOrUserOrRevival
-    public DataFetcherResult<ActorDto> create(@Argument final UUID spexareId, @Argument final UUID activityId, @Argument final UUID taskActivityId, @Argument final String vocalId, @Valid @Argument final ActorCreateDto input) {
+    public DataFetcherResult<ActorDto> create(@Argument final UUID spexareId, @Argument final UUID activityId, @Argument final UUID taskActivityId, @Argument final String vocalId, @Valid @Argument final ActorCreateDto input,
+                                                 @Argument("characterId") final ArgumentValue<UUID> character) {
+        final ActorDto actor = service.create(spexareId, activityId, taskActivityId, vocalId, input);
+
+        if (character.isPresent()) {
+            characterService.setCharacter(actor.getId(), character.value());
+        }
         return buildDataFetcherResult(
-                service.create(spexareId, activityId, taskActivityId, vocalId, input),
+                actor,
                 Map.of(
                         "spexareId", spexareId,
                         "activityId", activityId,
@@ -69,9 +81,15 @@ public class ActorGraphqlApi {
 
     @MutationMapping("actorUpdate")
     @RequiresAdminOrEditorOrUser
-    public DataFetcherResult<ActorDto> update(@Argument final UUID spexareId, @Argument final UUID activityId, @Argument final UUID taskActivityId, @Argument final String vocalId, @Valid @Argument final ActorUpdateDto input) {
+    public DataFetcherResult<ActorDto> update(@Argument final UUID spexareId, @Argument final UUID activityId, @Argument final UUID taskActivityId, @Argument final String vocalId, @Valid @Argument final ActorUpdateDto input,
+                                                 @Argument("characterId") final ArgumentValue<UUID> character) {
+        final ActorDto actor = service.update(spexareId, activityId, taskActivityId, vocalId, input.id(), input);
+
+        if (character.isPresent()) {
+            characterService.setCharacter(actor.getId(), character.value());
+        }
         return buildDataFetcherResult(
-                service.update(spexareId, activityId, taskActivityId, vocalId, input.id(), input),
+                actor,
                 Map.of(
                         "spexareId", spexareId,
                         "activityId", activityId,
@@ -113,4 +131,23 @@ public class ActorGraphqlApi {
         return service.findByTaskActivity(spexareId, activityId, dto.getId());
     }
 
+
+    @BatchMapping(typeName = "Actor", field = "character")
+    public Map<ActorDto, ActorCharacterService.CharacterDto> character(final List<ActorDto> actors) {
+        final Map<UUID, ActorCharacterService.CharacterDto> characters = characterService.charactersByActors(actors.stream().map(ActorDto::getId).toList());
+        final Map<ActorDto, ActorCharacterService.CharacterDto> result = new java.util.HashMap<>();
+
+        actors.forEach(actor -> {
+            if (characters.containsKey(actor.getId())) {
+                result.put(actor, characters.get(actor.getId()));
+            }
+        });
+        return result;
+    }
+
+    @QueryMapping("spexCharacters")
+    @RequiresAdminOrEditorOrUserOrRevival
+    public List<ActorCharacterService.CharacterDto> spexCharacters(@Argument final UUID spexId) {
+        return characterService.charactersOf(spexId);
+    }
 }

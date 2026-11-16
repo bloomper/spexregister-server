@@ -16,7 +16,6 @@
 
 package nu.fgv.register.server.spexare.activity.task;
 
-import nu.fgv.register.server.task.TaskApi;
 import nu.fgv.register.server.task.TaskDto;
 import nu.fgv.register.server.util.AbstractApiTest;
 import org.junit.jupiter.api.Test;
@@ -38,7 +37,6 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.linkWithRel;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
@@ -79,16 +77,14 @@ class TaskActivityApiTest extends AbstractApiTest {
     private final ResponseFieldsSnippet taskResponseFields = auditResponseFields.and(
             fieldWithPath("id").description("The id of the task"),
             fieldWithPath("name").description("The name of the task"),
+            fieldWithPath("retired").description("Whether the record is retired in Spexipedia"),
             linksSubsection
     );
     private final LinksSnippet taskLinks = baseLinks.and(
-            linkWithRel("tasks").description("Link to paged tasks").optional(),
-            linkWithRel("category").description("Link to the current task's task category").optional()
+            linkWithRel("task-activity").description("Link to the task activity")
     );
     @MockitoBean
     private TaskActivityService service;
-    @MockitoBean
-    private TaskApi taskApi;
 
     @Test
     void should_get_paged() throws Exception {
@@ -265,10 +261,8 @@ class TaskActivityApiTest extends AbstractApiTest {
     @Test
     void should_get_task() throws Exception {
         final var task = TaskDto.builder().id(uuid(1)).name("Scenmästare").build();
-        final var realTaskApi = new TaskApi(null, null, null, null);
 
         when(service.findTaskByTaskActivity(any(UUID.class), any(UUID.class), any(UUID.class))).thenReturn(task);
-        when(taskApi.getLinks(any(TaskDto.class), eq(false))).thenReturn(realTaskApi.getLinks(task, false));
 
         mockMvc
                 .perform(

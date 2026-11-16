@@ -16,7 +16,7 @@
 
 /**
  * Spex categories, the ensembles that stage spex such as Gamla Chalmersspexet and Bobspexet, each with a first year and
- * a logo.
+ * a logo. Read only: Spexipedia keeps them, and only the sync writes this copy.
  */
 @org.jspecify.annotations.NullMarked
 package nu.fgv.register.server.spex.category;

@@ -28,7 +28,6 @@ import java.util.Map;
 import java.util.Set;
 
 import static nu.fgv.register.server.security.policy.PolicyTestSupport.caller;
-import static nu.fgv.register.server.security.policy.PolicyTestSupport.noGrants;
 import static nu.fgv.register.server.security.policy.PolicyTestSupport.permissions;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -41,7 +40,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class ReferenceDataPolicyTest {
     @SuppressWarnings({"rawtypes", "unchecked"})
     private static final Map<String, AccessPolicy> POLICIES = Map.of(
-            "SPEX", new SpexPolicy(noGrants()),
+            "SPEX", new SpexPolicy(),
             "SPEX_CATEGORY", new SpexCategoryPolicy(),
             "TASK", new TaskPolicy(),
             "TASK_CATEGORY", new TaskCategoryPolicy(),
@@ -58,22 +57,22 @@ class ReferenceDataPolicyTest {
     @ParameterizedTest(name = "{0} {1} holds {2}")
     @CsvSource({
             // type,          role,    READ/WRITE/DELETE/ADMINISTRATION
-            "SPEX,            ADMIN,   RWDA",
-            "SPEX,            EDITOR,  RW--",
+            "SPEX,            ADMIN,   R---",
+            "SPEX,            EDITOR,  R---",
             "SPEX,            USER,    R---",
-            "SPEX,            REVIVAL, RW--",
+            "SPEX,            REVIVAL, R---",
             "SPEX,            NONE,    ----",
-            "SPEX_CATEGORY,   ADMIN,   RWDA",
+            "SPEX_CATEGORY,   ADMIN,   R---",
             "SPEX_CATEGORY,   EDITOR,  R---",
             "SPEX_CATEGORY,   USER,    R---",
             "SPEX_CATEGORY,   REVIVAL, ----",
             "SPEX_CATEGORY,   NONE,    ----",
-            "TASK,            ADMIN,   RWDA",
-            "TASK,            EDITOR,  RW--",
+            "TASK,            ADMIN,   R---",
+            "TASK,            EDITOR,  R---",
             "TASK,            USER,    R---",
             "TASK,            REVIVAL, R---",
             "TASK,            NONE,    ----",
-            "TASK_CATEGORY,   ADMIN,   RWDA",
+            "TASK_CATEGORY,   ADMIN,   R---",
             "TASK_CATEGORY,   EDITOR,  R---",
             "TASK_CATEGORY,   USER,    R---",
             "TASK_CATEGORY,   REVIVAL, R---",

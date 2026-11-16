@@ -92,14 +92,19 @@ public class ExcelImportEngine implements ImportEngine {
                 }
             }
 
-            return new ImportEngineResponse(validationResult, data);
+            final List<String> sheetNames = new ArrayList<>();
+
+            workbook.sheetIterator().forEachRemaining(sheet -> sheetNames.add(sheet.getSheetName()));
+
+            return new ImportEngineResponse(validationResult, data, List.copyOf(sheetNames));
         } catch (final Exception e) {
             return new ImportEngineResponse(
                     ImportResultDto.builder()
                             .success(false)
                             .messages(List.of(e.getMessage()))
                             .build(),
-                    null
+                    null,
+                    List.of()
             );
         }
     }
