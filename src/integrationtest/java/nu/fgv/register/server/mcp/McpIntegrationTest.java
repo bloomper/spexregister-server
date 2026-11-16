@@ -37,7 +37,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -50,9 +49,6 @@ class McpIntegrationTest extends AbstractIntegrationTest {
 
     private static final String MCP_PATH = "/api/mcp";
     private static final Set<String> EXPECTED_TOOLS = Set.of(
-            // Spex and tasks are read only: Spexipedia keeps them
-            "list_tasks", "get_task", "list_task_categories", "get_task_category",
-            "list_spex", "get_spex", "list_spex_categories", "get_spex_category",
             "list_news", "get_news", "create_news", "update_news", "delete_news",
             "list_tags", "get_tag", "create_tag", "update_tag", "delete_tag",
             "get_user_statistics"
@@ -252,70 +248,6 @@ class McpIntegrationTest extends AbstractIntegrationTest {
             assertThat(JdbcTestUtils.countRowsInTable(jdbcClient, "tag")).isZero();
         }
 
-
-
-        @Test
-        void should_list_tasks_with_category() {
-            final UUID category = fixtures().taskCategory("Orkester", false);
-            fixtures().task("Trumpet", category);
-            fixtures().task("Affisch", null);
-
-            final JsonNode listed = toolContent(callTool(obtainMcpAccessToken(TEST_USER), "list_tasks", Map.of()));
-
-            assertThat(listed.get("totalElements").asLong()).isEqualTo(2);
-            assertThat(listed.get("items").get(0).get("name").asString()).isEqualTo("Affisch");
-            assertThat(listed.get("items").get(0).hasNonNull("category")).isFalse();
-            assertThat(listed.get("items").get(1).get("name").asString()).isEqualTo("Trumpet");
-            assertThat(listed.get("items").get(1).get("category").get("name").asString()).isEqualTo("Orkester");
-        }
-
-        @Test
-        void should_filter_tasks_by_category() {
-            final String token = obtainMcpAccessToken(TEST_ADMIN);
-            final UUID category = fixtures().taskCategory("Orkester", false);
-            fixtures().task("Trumpet", category);
-            fixtures().task("Affisch", null);
-
-            final JsonNode listed = toolContent(callTool(token, "list_tasks", Map.of("filter", "category.name:Orkester")));
-
-            assertThat(listed.get("totalElements").asLong()).isEqualTo(1);
-            assertThat(listed.get("items").get(0).get("name").asString()).isEqualTo("Trumpet");
-        }
-
-        @Test
-        void should_list_spex_without_revivals_by_default() {
-            final UUID napoleon = fixtures().spex("1986", "Napoleon", null);
-            final String spexId = napoleon.toString();
-
-            fixtures().revival(napoleon, "2006", "Napoleon");
-
-            final String userToken = obtainMcpAccessToken(TEST_USER);
-            final JsonNode originals = toolContent(callTool(userToken, "list_spex", Map.of()));
-            final JsonNode all = toolContent(callTool(userToken, "list_spex", Map.of("includeRevivals", true)));
-            final JsonNode details = toolContent(callTool(userToken, "get_spex", Map.of("id", spexId)));
-
-            assertThat(originals.get("totalElements").asLong()).isEqualTo(1);
-            assertThat(all.get("totalElements").asLong()).isEqualTo(2);
-            assertThat(details.get("revivals").get(0).get("year").asString()).isEqualTo("2006");
-        }
-
-        @Test
-        void should_list_spex_with_category() {
-            final UUID category = fixtures().spexCategory("Chalmersspexet", "1948");
-            final UUID napoleon = fixtures().spex("1986", "Napoleon", category);
-            fixtures().spex("1990", "Anna", null);
-
-            fixtures().revival(napoleon, "2006", "Napoleon");
-
-            final JsonNode listed = toolContent(callTool(obtainMcpAccessToken(TEST_USER), "list_spex", Map.of("includeRevivals", true)));
-
-            assertThat(listed.get("totalElements").asLong()).isEqualTo(3);
-            assertThat(listed.get("items").get(0).get("category").get("name").asString()).isEqualTo("Chalmersspexet");
-            assertThat(listed.get("items").get(1).hasNonNull("category")).isFalse();
-            assertThat(listed.get("items").get(2).get("revival").asBoolean()).isTrue();
-            assertThat(listed.get("items").get(2).get("category").get("name").asString()).isEqualTo("Chalmersspexet");
-        }
-
         @Test
         void should_create_news_with_dates() {
             final JsonNode news = toolContent(callTool(obtainMcpAccessToken(TEST_EDITOR), "create_news", Map.of(
@@ -343,16 +275,5 @@ class McpIntegrationTest extends AbstractIntegrationTest {
 
             assertThat(List.copyOf(tag.propertyNames())).containsExactlyInAnyOrder("id", "name");
         }
-    }
-
-    @Autowired
-    private nu.fgv.register.server.sync.SyncService syncService;
-    private nu.fgv.register.server.util.BaseDataFixtures fixtures;
-
-    private nu.fgv.register.server.util.BaseDataFixtures fixtures() {
-        if (fixtures == null) {
-            fixtures = new nu.fgv.register.server.util.BaseDataFixtures(syncService);
-        }
-        return fixtures;
     }
 }

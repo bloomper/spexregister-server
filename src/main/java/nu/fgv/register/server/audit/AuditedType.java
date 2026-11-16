@@ -16,8 +16,15 @@
 
 package nu.fgv.register.server.audit;
 
+import java.util.EnumSet;
+import java.util.Set;
+
 /**
  * The set of entities covered by the Envers audit history.
+ * <p>
+ * Base data ({@link #BASE_DATA}) is still recorded, since a spexare's history shows what their activities pointed at,
+ * but it is kept in Spexipedia, which has its history: it is left out of the change log and has no history of its own
+ * here.
  *
  * @author Anders Jacobsson
  * @since 2.0
@@ -42,5 +49,18 @@ public enum AuditedType {
     USER,
     STATE,
     TYPE,
-    PERMISSION_GRANT
+    PERMISSION_GRANT;
+
+    /**
+     * Spex, their details, spex categories, tasks and task categories: the copy of Spexipedia's base data that only the
+     * sync writes.
+     */
+    public static final Set<AuditedType> BASE_DATA = Set.copyOf(EnumSet.of(SPEX, SPEX_DETAILS, SPEX_CATEGORY, TASK, TASK_CATEGORY));
+
+    /**
+     * @return whether this is base data, whose history Spexipedia keeps
+     */
+    public boolean isBaseData() {
+        return BASE_DATA.contains(this);
+    }
 }

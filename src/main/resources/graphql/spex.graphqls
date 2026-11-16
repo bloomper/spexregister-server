@@ -4,13 +4,6 @@ extend type Query {
     spexPaged(first: Int, after: String, last: Int, before: String, filter: String! = "parent:NULL", sort: [String]! = ["year"], direction: SortDirection = ASC): SpexConnection
     "Every role."
     spex(id: ID!): Spex
-    "Every role. A revival of another spex is not found."
-    spexRevival(spexId: ID!, id: ID!): Spex
-    """
-    ADMIN or EDITOR. Starts an export of the given spex, or of the original spex matching the filter, with their
-    revivals.
-    """
-    spexExport(ids: [ID], filter: String, type: ImpexType!): JobReference
 }
 
 
@@ -32,7 +25,6 @@ type Spex {
     retired: Boolean!
     "Not for the REVIVAL role."
     category: SpexCategory
-    revivalsPaged(first: Int, after: String, last: Int, before: String, sort: [String]! = ["year"], direction: SortDirection = ASC): SpexRevivalConnection
     "By year."
     revivals: [SpexRevival]
     createdBy: String!
@@ -71,16 +63,4 @@ type SpexEdge {
     cursor: String!
     node: Spex!
 }
-
-type SpexRevivalConnection {
-    edges: [SpexRevivalEdge]!
-    pageInfo: PageInfo!
-    totalCount: Int!
-}
-
-type SpexRevivalEdge {
-    cursor: String!
-    node: SpexRevival!
-}
-
 

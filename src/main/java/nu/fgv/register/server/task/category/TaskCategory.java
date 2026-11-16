@@ -24,7 +24,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
-import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -78,7 +77,7 @@ public class TaskCategory extends AbstractAuditable implements Serializable {
     private UUID uuid = Uuids.v7();
 
     @NotBlank(message = "{taskCategory.name.notEmpty}")
-    @Size(max = 255, message = "{taskCategory.name.maxSize}")
+    @Size(max = 255, message = "{taskCategory.name.size}")
     @Column(name = "name", nullable = false)
     @KeywordField(searchable = Searchable.YES, normalizer = NORMALIZER_LOWERCASE)
     @PropertyBinding(binder = @PropertyBinderRef(type = HierarchicalPropertyBinder.class))

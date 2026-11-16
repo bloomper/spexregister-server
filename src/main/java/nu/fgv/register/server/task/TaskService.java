@@ -21,29 +21,20 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nu.fgv.register.server.security.policy.Permission;
 import nu.fgv.register.server.security.policy.PermissionService;
-import nu.fgv.register.server.task.category.TaskCategory;
 import nu.fgv.register.server.task.category.TaskCategoryDto;
-import nu.fgv.register.server.task.category.TaskCategoryRepository;
-import nu.fgv.register.server.util.error.InternalErrorException;
 import nu.fgv.register.server.util.error.ResourceNoValueException;
 import nu.fgv.register.server.util.error.ResourceNotFoundException;
-import nu.fgv.register.server.util.error.ResourcesNotFoundException;
 import nu.fgv.register.server.util.filter.FilterParser;
 import nu.fgv.register.server.util.filter.SpecificationsBuilder;
 import nu.fgv.register.server.util.graphql.CountedWindow;
 import nu.fgv.register.server.util.graphql.GraphqlUtil.ScrollRequest;
-import nu.fgv.register.server.util.security.RequiresAdmin;
-import nu.fgv.register.server.util.security.RequiresAdminOrEditor;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
 import nu.fgv.register.server.util.security.RequiresReferenceDataReader;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 import static nu.fgv.register.server.task.TaskMapper.TASK_MAPPER;
@@ -65,7 +56,6 @@ import static org.springframework.util.StringUtils.hasText;
 public class TaskService {
 
     private final TaskRepository repository;
-    private final TaskCategoryRepository categoryRepository;
     private final PermissionService permissionService;
 
     /**
@@ -91,24 +81,6 @@ public class TaskService {
                                     .scroll(scroll.positionFor(total))
                                     .map(TASK_MAPPER::toDto), total);
                         });
-    }
-
-    /**
-     * The tasks the caller may read that match the filter, for the REST API.
-     *
-     * @param filter   a filter expression, or blank for all
-     * @param pageable the page to read
-     * @return the page
-     */
-    @RequiresAdminOrEditorOrUser
-    public Page<TaskDto> find(final String filter, final Pageable pageable) {
-        return hasText(filter) ?
-                repository
-                        .findAll(SpecificationsBuilder.<Task>builder().build(FilterParser.parse(filter), TaskSpecification::new), pageable, Permission.READ)
-                        .map(TASK_MAPPER::toDto) :
-                repository
-                        .findAll(pageable, Permission.READ)
-                        .map(TASK_MAPPER::toDto);
     }
 
     /**
@@ -184,10 +156,6 @@ public class TaskService {
 
     private boolean doesTaskExist(final UUID id) {
         return repository.findByUuid0(id).isPresent();
-    }
-
-    private boolean doTaskAndCategoryExist(final UUID taskId, final UUID categoryId) {
-        return doesTaskExist(taskId) && categoryRepository.findByUuid(categoryId).isPresent();
     }
 
 }

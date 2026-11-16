@@ -15,8 +15,8 @@
  */
 
 /**
- * Tools for MCP clients to manage the reference data: spex and revivals, spex categories, tasks, task categories, news
- * and tags. Spexare and users are left out on purpose. Each tool runs with the caller's own permissions and is recorded
+ * Tools for MCP clients to manage the reference data kept here: news and tags. Spex and tasks are kept in Spexipedia.
+ * Spexare and users are left out on purpose. Each tool runs with the caller's own permissions and is recorded
  * as an {@link nu.fgv.register.server.audit.AuditSource#MCP} revision.
  */
 @org.jspecify.annotations.NullMarked

@@ -21,9 +21,6 @@ import nu.fgv.register.server.news.News;
 import nu.fgv.register.server.news.NewsDto;
 import nu.fgv.register.server.news.NewsRepository;
 import nu.fgv.register.server.security.policy.PermissionService;
-import nu.fgv.register.server.spex.Spex;
-import nu.fgv.register.server.spex.SpexDto;
-import nu.fgv.register.server.spex.SpexRepository;
 import nu.fgv.register.server.spexare.Spexare;
 import nu.fgv.register.server.spexare.SpexareDto;
 import nu.fgv.register.server.spexare.SpexareRepository;
@@ -40,7 +37,7 @@ import java.util.UUID;
 import java.util.function.Function;
 
 /**
- * Resolves {@code permissions} on spexare, spex and news: what the caller may do with each, so the client can show only
+ * Resolves {@code permissions} on spexare and news: what the caller may do with each, so the client can show only
  * the actions the server will allow.
  *
  * @author Anders Jacobsson
@@ -54,19 +51,12 @@ public class PermissionsGraphqlApi {
 
     private final PermissionService permissionService;
     private final SpexareRepository spexareRepository;
-    private final SpexRepository spexRepository;
     private final NewsRepository newsRepository;
 
     @BatchMapping(typeName = "Spexare", field = "permissions")
     @Transactional(readOnly = true)
     public Map<SpexareDto, PermissionsDto> spexare(final List<SpexareDto> spexare) {
         return permissions(spexare, SpexareDto::getId, spexareRepository::findByUuidIn, Spexare::getUuid);
-    }
-
-    @BatchMapping(typeName = "Spex", field = "permissions")
-    @Transactional(readOnly = true)
-    public Map<SpexDto, PermissionsDto> spex(final List<SpexDto> spex) {
-        return permissions(spex, SpexDto::getId, spexRepository::findByUuidIn, Spex::getUuid);
     }
 
     @BatchMapping(typeName = "News", field = "permissions")

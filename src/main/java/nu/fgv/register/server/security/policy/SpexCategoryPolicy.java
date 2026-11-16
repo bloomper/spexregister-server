@@ -25,13 +25,13 @@ import static nu.fgv.register.server.security.policy.Caller.SPEXIPEDIA;
 import static nu.fgv.register.server.security.policy.Caller.USER;
 
 /**
- * Everyone with a role reads spex categories; only administrators change them.
+ * Everyone with a role but the revival service reads spex categories; nobody changes them. Read only: Spexipedia
+ * keeps base data, and Spexregister's copy is written only by the sync.
  *
  * @author Anders Jacobsson
  * @since 2.0
  */
 @Component
-// Read only: Spexipedia keeps base data, and Spexregister's copy is written only by the sync
 public class SpexCategoryPolicy extends ReferenceDataPolicy<SpexCategory> {
 
     public SpexCategoryPolicy() {

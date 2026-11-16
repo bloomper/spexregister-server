@@ -18,7 +18,6 @@ package nu.fgv.register.server.spexare.activity.spex;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import nu.fgv.register.server.spex.SpexApi;
 import nu.fgv.register.server.spex.SpexDto;
 import nu.fgv.register.server.spexare.SpexareApi;
 import nu.fgv.register.server.spexare.activity.ActivityApi;
@@ -57,7 +56,6 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 public class SpexActivityApi {
 
     private final SpexActivityService service;
-    private final SpexApi spexApi;
 
     @GetMapping(produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditorOrUser
@@ -106,7 +104,9 @@ public class SpexActivityApi {
     public ResponseEntity<EntityModel<SpexDto>> retrieveSpex(@PathVariable final UUID spexareId, @PathVariable final UUID activityId, @PathVariable final UUID id) {
         final SpexDto dto = service.findSpexBySpexActivity(spexareId, activityId, id);
 
-        return ResponseEntity.ok(EntityModel.of(dto, spexApi.getLinks(dto, false)));
+        return ResponseEntity.ok(EntityModel.of(dto, List.of(
+                linkTo(methodOn(SpexActivityApi.class).retrieveSpex(spexareId, activityId, id)).withSelfRel(),
+                linkTo(methodOn(SpexActivityApi.class).retrieve(spexareId, activityId, id)).withRel("spex-activity"))));
     }
 
     private void addLinks(final EntityModel<SpexActivityDto> entity, final UUID spexareId, final UUID activityId) {

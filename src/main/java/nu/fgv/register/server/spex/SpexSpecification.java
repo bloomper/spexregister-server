@@ -52,18 +52,6 @@ public class SpexSpecification extends BaseSpecification<Spex> {
         return (root, query, criteriaBuilder) -> criteriaBuilder.isNull(root.get(Spex_.parent));
     }
 
-    public static Specification<Spex> hasId(final UUID id) {
-        return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get(Spex_.uuid), id);
-    }
-
-    public static Specification<Spex> hasParent(final Spex parent) {
-        return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get(Spex_.parent), parent);
-    }
-
-    public static Specification<Spex> hasYear(final String year) {
-        return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get(Spex_.year), year);
-    }
-
     public static Specification<Spex> hasIds(final List<UUID> ids) {
         return (root, query, criteriaBuilder) -> root.get(Spex_.uuid).in(ids);
     }

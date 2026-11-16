@@ -19,61 +19,37 @@ package nu.fgv.register.server.spex;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import nu.fgv.register.server.image.Image;
-import nu.fgv.register.server.permission.PermissionGrantService;
 import nu.fgv.register.server.security.policy.Permission;
 import nu.fgv.register.server.security.policy.PermissionService;
-import nu.fgv.register.server.spex.category.SpexCategory;
 import nu.fgv.register.server.spex.category.SpexCategoryDto;
-import nu.fgv.register.server.spex.category.SpexCategoryRepository;
-import nu.fgv.register.server.util.error.InternalErrorException;
-import nu.fgv.register.server.util.error.ResourceNoValueException;
 import nu.fgv.register.server.util.error.ResourceNotFoundException;
-import nu.fgv.register.server.util.error.ResourcesNotFoundException;
-import nu.fgv.register.server.util.error.SubresourceAlreadyExistsException;
 import nu.fgv.register.server.util.filter.FilterParser;
 import nu.fgv.register.server.util.filter.SpecificationsBuilder;
 import nu.fgv.register.server.util.graphql.CountedWindow;
-import nu.fgv.register.server.util.graphql.GraphqlUtil;
 import nu.fgv.register.server.util.graphql.GraphqlUtil.ScrollRequest;
-import nu.fgv.register.server.util.security.RequiresAdmin;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
-import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUserOrRevival;
 import nu.fgv.register.server.util.security.RequiresSpexReader;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 
-import java.time.Instant;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
-import java.util.function.Function;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static nu.fgv.register.server.spex.SpexMapper.SPEX_MAPPER;
 import static nu.fgv.register.server.spex.SpexSpecification.NO_FILTER;
-import static nu.fgv.register.server.spex.SpexSpecification.hasId;
 import static nu.fgv.register.server.spex.SpexSpecification.hasIds;
-import static nu.fgv.register.server.spex.SpexSpecification.hasParent;
 import static nu.fgv.register.server.spex.SpexSpecification.hasParentIds;
-import static nu.fgv.register.server.spex.SpexSpecification.hasYear;
 import static nu.fgv.register.server.spex.SpexSpecification.isNotRevival;
 import static nu.fgv.register.server.spex.SpexSpecification.isRevival;
 import static nu.fgv.register.server.spex.category.SpexCategoryMapper.SPEX_CATEGORY_MAPPER;
-import static nu.fgv.register.server.util.FileUtil.requireSupportedImageMimeType;
 import static org.springframework.util.StringUtils.hasText;
 
 /**
- * Spex and their revivals. Changes to the shared {@link SpexDetails} touch the original spex's last modified time, so
- * that lists sorted by it see the change.
+ * Reading spex and their revivals. Read only: Spexipedia keeps the spex and only the sync writes the copy here.
  *
  * @author Anders Jacobsson
  * @since 2.0
@@ -85,22 +61,7 @@ import static org.springframework.util.StringUtils.hasText;
 public class SpexService {
 
     private final SpexRepository repository;
-    private final SpexDetailsRepository detailsRepository;
-    private final SpexCategoryRepository categoryRepository;
     private final PermissionService permissionService;
-    private final PermissionGrantService permissionGrantService;
-
-    /**
-     * @param sort the order
-     * @return the original spex the caller may read, without revivals
-     */
-    @RequiresAdminOrEditorOrUser
-    public List<SpexDto> findAll(final Sort sort) {
-        return repository
-                .findAll(isNotRevival(), sort, Permission.READ)
-                .stream().map(SPEX_MAPPER::toDto)
-                .toList();
-    }
 
     /**
      * The spex the caller may read that match the filter, revivals included unless the filter leaves them out.
@@ -125,24 +86,6 @@ public class SpexService {
                                     .scroll(scroll.positionFor(total))
                                     .map(SPEX_MAPPER::toDto), total);
                         });
-    }
-
-    /**
-     * The spex the caller may read that match the filter, for the REST API.
-     *
-     * @param filter   a filter expression, or blank for all
-     * @param pageable the page to read
-     * @return the page
-     */
-    @RequiresAdminOrEditorOrUser
-    public Page<SpexDto> find(final String filter, final Pageable pageable) {
-        return hasText(filter) ?
-                repository
-                        .findAll(SpecificationsBuilder.<Spex>builder().build(FilterParser.parse(filter), SpexSpecification::new), pageable, Permission.READ)
-                        .map(SPEX_MAPPER::toDto) :
-                repository
-                        .findAll(pageable, Permission.READ)
-                        .map(SPEX_MAPPER::toDto);
     }
 
     /**
@@ -226,95 +169,6 @@ public class SpexService {
     }
 
     /**
-     * @param id the id of a revival
-     * @return the original it revives
-     * @throws nu.fgv.register.server.util.error.ResourceNoValueException when the spex is not a revival
-     */
-    @RequiresAdminOrEditorOrUser
-    public SpexDto findParentById(final UUID id) {
-        if (doesSpexExist(id)) {
-            return repository
-                    .findByUuid0(id)
-                    .filter(revival -> revival.getParent() != null)
-                    .map(Spex::getParent)
-                    .map(SPEX_MAPPER::toDto)
-                    .orElseThrow(() -> new ResourceNoValueException(Spex.class, Spex_.PARENT, id));
-        } else {
-            throw new ResourceNotFoundException(Spex.class, id);
-        }
-    }
-
-    /**
-     * @param spexId the original spex id
-     * @param id     the revival id
-     * @return the revival
-     * @throws nu.fgv.register.server.util.error.ResourceNotFoundException when it is not a revival of that spex
-     */
-    @RequiresSpexReader
-    public SpexDto findRevivalById(final UUID spexId, final UUID id) {
-        if (doSpexAndRevivalExist(spexId, id)) {
-            return repository
-                    .findByUuid0(id)
-                    .filter(revival -> revival.getParent() != null && revival.getParent().getUuid().equals(spexId))
-                    .map(SPEX_MAPPER::toDto)
-                    .orElseThrow(() -> new ResourceNotFoundException(Spex.class, id));
-        } else {
-            throw new ResourcesNotFoundException(new String[]{Spex.class.getSimpleName(), "Revival"}, spexId, id);
-        }
-    }
-
-    /**
-     * @param id the original spex id
-     * @return the revivals the caller may read by year, or none when the spex is itself a revival
-     */
-    @RequiresAdminOrEditorOrUser
-    public List<SpexDto> findRevivalsByParent(final UUID id) {
-        if (doesSpexExist(id)) {
-            return repository
-                    .findByUuid0(id)
-                    .filter(parent -> !parent.isRevival())
-                    .map(parent -> repository
-                            .findAll(hasParent(parent), Pageable.unpaged(Sort.by(Spex_.YEAR)), Permission.READ)
-                            .stream()
-                            .map(SPEX_MAPPER::toDto)
-                            .toList()
-                    )
-                    .orElseGet(Collections::emptyList);
-        } else {
-            throw new ResourceNotFoundException(Spex.class, id);
-        }
-    }
-
-    @RequiresSpexReader
-    public CountedWindow<SpexDto> findRevivalsByParent(final UUID id, final ScrollRequest scroll, final Sort sort) {
-        return findRevivalsByParent(
-                id,
-                parent -> repository
-                        .findBy(hasParent(parent), Permission.READ, query -> {
-                            final long total = query.count();
-
-                            return CountedWindow.of(query
-                                    .limit(scroll.limit())
-                                    .sortBy(sort)
-                                    .scroll(scroll.positionFor(total))
-                                    .map(SPEX_MAPPER::toDto), total);
-                        }),
-                GraphqlUtil::emptyWindow
-        );
-    }
-
-    @RequiresAdminOrEditorOrUser
-    public Page<SpexDto> findRevivalsByParent(final UUID id, final Pageable pageable) {
-        return findRevivalsByParent(
-                id,
-                parent -> repository
-                        .findAll(hasParent(parent), pageable, Permission.READ)
-                        .map(SPEX_MAPPER::toDto),
-                Page::empty
-        );
-    }
-
-    /**
      * For batch loading.
      *
      * @param ids spex ids
@@ -363,52 +217,9 @@ public class SpexService {
                 .collect(Collectors.toMap(Spex::getUuid, spex -> SPEX_CATEGORY_MAPPER.toDto(spex.getDetails().getCategory())));
     }
 
-    @RequiresAdminOrEditorOrUser
-    public SpexCategoryDto findCategoryBySpex(final UUID id) {
-        if (doesSpexExist(id)) {
-            return repository
-                    .findByUuid0(id)
-                    .filter(spex -> spex.getDetails().getCategory() != null)
-                    .map(spex -> spex.getDetails().getCategory())
-                    .map(SPEX_CATEGORY_MAPPER::toDto)
-                    .orElseThrow(() -> new ResourceNoValueException(Spex.class, SpexDetails_.CATEGORY, id));
-        } else {
-            throw new ResourceNotFoundException(Spex.class, id);
-        }
-    }
-
-    private void touchSpexByDetails(final SpexDetails details) {
-        repository.findByDetailsAndParentIsNull(details).ifPresent(spex -> {
-            spex.setLastModifiedAt(Instant.now());
-            repository.save(spex);
-        });
-    }
-
-    private <T> T findRevivalsByParent(final UUID id, final Function<Spex, T> retrievalFunction, final Supplier<T> emptyResultSupplier) {
-        if (doesSpexExist(id)) {
-            return repository.findByUuid0(id)
-                    .map(retrievalFunction)
-                    .orElseGet(emptyResultSupplier);
-        } else {
-            throw new ResourceNotFoundException(Spex.class, id);
-        }
-    }
-
     private List<Spex> findReadable(final Collection<UUID> ids) {
         return repository.findByUuidIn(ids).stream()
                 .filter(permissionService::hasReadPermission)
                 .toList();
-    }
-
-    private boolean doesSpexExist(final UUID id) {
-        return repository.findByUuid0(id).isPresent();
-    }
-
-    private boolean doSpexAndRevivalExist(final UUID spexId, final UUID id) {
-        return repository.findByUuid0(spexId).isPresent() && repository.findByUuid0(id).isPresent();
-    }
-
-    private boolean doSpexAndCategoryExist(final UUID spexId, final UUID categoryId) {
-        return doesSpexExist(spexId) && categoryRepository.findByUuid0(categoryId).isPresent();
     }
 }

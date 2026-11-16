@@ -1,33 +1,33 @@
 extend type Query {
     """
-    ADMIN, EDITOR or USER who may read the entity. Its revisions with those of what it points at, such as a spex's
-    details, newest first.
+    ADMIN, EDITOR or USER who may read the entity. Its revisions, newest first. Not for base data (see AuditedType).
     """
     revisions(type: AuditedType!, id: ID!): [Revision]
-    "ADMIN, EDITOR or USER who may read the entity. One of its revisions, as revisions gives it."
+    "ADMIN, EDITOR or USER who may read the entity. One of its revisions, as revisions gives it. Not for base data."
     revision(type: AuditedType!, id: ID!, revision: Long!): Revision
     """
     ADMIN, EDITOR or USER who may read the entity. The revisions of the records of relatedType that belong to it, and of
-    those that belong to them in turn, newest first; for example the activities of a spexare.
+    those that belong to them in turn, newest first; for example the activities of a spexare. Not for base data.
     """
     relatedRevisions(type: AuditedType!, id: ID!, relatedType: AuditedType!): [Revision]
     """
     ADMIN. All revisions, newest first, narrowed by the entity type that changed, the authors, the sources and a period
-    from and to, both inclusive. Without from, the period starts sinceInDays days before to, or today.
+    from and to, both inclusive. Without from, the period starts sinceInDays days before to, or today. Revisions that
+    changed nothing but base data are left out, and type may not be base data.
     """
     revisionFeedPaged(first: Int, after: String, last: Int, before: String, type: AuditedType, modifiedBy: [String!], sources: [AuditSource!], from: Date, to: Date, sinceInDays: Int = 90): RevisionFeedConnection
-    "ADMIN. Everything changed in a revision, at most limitPerType entities of each type."
+    "ADMIN. Everything changed in a revision but base data, at most limitPerType entities of each type."
     revisionDetail(revision: Long!, limitPerType: Int! = 20): RevisionDetail
-    "ADMIN. Everyone who has made a revision, by name."
+    "ADMIN. Everyone who has made a revision in the feed, by name."
     revisionAuthors: [String!]!
-    "ADMIN. What restore would change, without changing anything."
+    "ADMIN. What restore would change, without changing anything. Not for base data."
     restorePreview(type: AuditedType!, id: ID!, revision: Long!, cascade: Boolean = false): RestorePreview
 }
 
 extend type Mutation {
     """
-    ADMIN, with WRITE on the entity. Puts its audited fields, and those of what it points at, back as they were in the
-    revision. With cascade, the records that belong to it are restored too: changed ones are put back, ones added since
+    ADMIN, with WRITE on the entity. Puts its audited fields back as they were in the revision. Not for base data. With
+    cascade, the records that belong to it are restored too: changed ones are put back, ones added since
     are removed and ones removed since are re-created under new ids. The entity must still exist. The reason given in
     the X-Audit-Reason header is kept with the new revision.
     """
@@ -175,7 +175,11 @@ enum AuditSource {
     MCP
 }
 
-"The entity types that have an audit history."
+"""
+The entity types that have an audit history. SPEX, SPEX_DETAILS, SPEX_CATEGORY, TASK and TASK_CATEGORY are base data:
+Spexipedia keeps it and has its history, so it is recorded here only for what spexare's activities pointed at, and
+left out of the change log.
+"""
 enum AuditedType {
     NEWS
     SPEX

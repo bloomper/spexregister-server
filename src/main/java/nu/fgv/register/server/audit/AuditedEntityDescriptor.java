@@ -36,8 +36,7 @@ public record AuditedEntityDescriptor(
         Function<Object, Optional<Object>> findCurrent,
         @Nullable Function<Object, @Nullable Object> accessRoot,
         List<AuditedChildDescriptor> children,
-        @Nullable Function<Object, @Nullable String> label,
-        List<AuditedReferenceDescriptor> references
+        @Nullable Function<Object, @Nullable String> label
 ) {
 
     @SuppressWarnings("unchecked")
@@ -56,17 +55,8 @@ public record AuditedEntityDescriptor(
                 (Function<Object, Optional<Object>>) (Function<?, ?>) findCurrent,
                 (Function<Object, @Nullable Object>) accessRoot,
                 children,
-                null,
-                List.of()
+                null
         );
-    }
-
-    /**
-     * @param references entities the root points at whose history belongs in its timeline
-     * @return a copy with the references
-     */
-    public AuditedEntityDescriptor withReferences(final AuditedReferenceDescriptor... references) {
-        return new AuditedEntityDescriptor(type, entityClass, idParser, findCurrent, accessRoot, children, label, List.of(references));
     }
 
     /**
@@ -83,8 +73,7 @@ public record AuditedEntityDescriptor(
                 findCurrent,
                 accessRoot,
                 children,
-                (Function<Object, @Nullable String>) label,
-                references
+                (Function<Object, @Nullable String>) label
         );
     }
 

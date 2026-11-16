@@ -19,10 +19,6 @@ package nu.fgv.register.server.task.category;
 import lombok.Getter;
 import nu.fgv.register.server.util.filter.BaseSpecification;
 import nu.fgv.register.server.util.filter.FilterCriteria;
-import org.springframework.data.jpa.domain.Specification;
-
-import java.util.List;
-import java.util.UUID;
 
 /**
  * Filters on task categories for the {@code filter} expressions of
@@ -41,10 +37,6 @@ public class TaskCategorySpecification extends BaseSpecification<TaskCategory> {
 
     public TaskCategorySpecification(final FilterCriteria criteria) {
         super(criteria);
-    }
-
-    public static Specification<TaskCategory> hasIds(final List<UUID> ids) {
-        return (root, query, criteriaBuilder) -> root.get(TaskCategory_.uuid).in(ids);
     }
 
 }

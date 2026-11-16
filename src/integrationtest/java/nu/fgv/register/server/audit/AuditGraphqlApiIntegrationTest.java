@@ -20,6 +20,8 @@ import nu.fgv.register.server.spexare.Spexare;
 import nu.fgv.register.server.spexare.SpexareRepository;
 import nu.fgv.register.server.tag.Tag;
 import nu.fgv.register.server.tag.TagRepository;
+import nu.fgv.register.server.task.category.TaskCategory;
+import nu.fgv.register.server.task.category.TaskCategoryRepository;
 import nu.fgv.register.server.util.AbstractAuditable;
 import nu.fgv.register.server.util.AbstractGraphqlIntegrationTest;
 import nu.fgv.register.server.util.randomizer.RandomizerSupport;
@@ -60,6 +62,7 @@ class AuditGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
     private final EasyRandom random;
     private final SpexareRepository spexareRepository;
     private final TagRepository repository;
+    private final TaskCategoryRepository taskCategoryRepository;
 
     @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
@@ -68,10 +71,12 @@ class AuditGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                                           final String keycloakClientId,
                                           final TagRepository repository,
                                           final SpexareRepository spexareRepository,
+                                          final TaskCategoryRepository taskCategoryRepository,
                                           final ObjectMapper objectMapper) {
         super(jdbcClient, keycloakAdminClient, keycloakClientId, objectMapper);
         this.repository = repository;
         this.spexareRepository = spexareRepository;
+        this.taskCategoryRepository = taskCategoryRepository;
 
         final EasyRandomParameters parameters = RandomizerSupport.parameters();
 
@@ -88,7 +93,8 @@ class AuditGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                         .build()
         );
 
-        JdbcTestUtils.deleteFromTables(jdbcClient, "tag", "tag_audit", "spexare", "spexare_audit", "revchanges", "revinfo");
+        JdbcTestUtils.deleteFromTables(jdbcClient, "tag", "tag_audit", "spexare", "spexare_audit", "task_category",
+                "task_category_audit", "revchanges", "revinfo");
     }
 
     private Long firstRevisionOf(final Tag tag) {
@@ -132,6 +138,24 @@ class AuditGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         tag.setId(null);
 
         return repository.save(tag);
+    }
+
+    /**
+     * Base data as the sync writes it, in a revision of its own made by the given author.
+     */
+    private void persistBaseDataBy(final String author) {
+        final TaskCategory category = new TaskCategory();
+
+        category.setName("Ensemble");
+        category.setActorPresent(true);
+
+        final TaskCategory saved = taskCategoryRepository.save(category);
+
+        jdbcClient
+                .sql("UPDATE revinfo SET modified_by = :author WHERE id = (SELECT rev FROM task_category_audit WHERE id = :id)")
+                .param("author", author)
+                .param("id", saved.getId())
+                .update();
     }
 
     private GraphQlTester.Traversable feedAsAdmin(final UnaryOperator<GraphQlTester.Request<?>> narrow) {
@@ -317,6 +341,34 @@ class AuditGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         }
 
         @Test
+        void should_leave_out_revisions_that_changed_only_base_data() {
+            persistBaseDataBy("spexipedia");
+            persistTag();
+
+            feedAsAdmin(tester -> tester)
+                    .path("revisionFeedPaged.totalCount").entity(Integer.class).isEqualTo(1)
+                    .path("revisionFeedPaged.edges[0].node.types").entityList(String.class).containsExactly("TAG");
+        }
+
+        @Test
+        void should_refuse_to_narrow_the_feed_to_base_data() {
+            persistBaseDataBy("spexipedia");
+
+            httpGraphQlTester
+                    .mutate()
+                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
+                    .build()
+                    .documentName("audit/revisionFeedPaged")
+                    .variable("first", 10)
+                    .variable("type", AuditedType.TASK_CATEGORY)
+                    .execute()
+                    .errors()
+                    .satisfy(errors -> assertThat(errors)
+                            .anyMatch(error -> error.getExtensions().get("classification").toString().equals(ErrorType.BAD_REQUEST.toString()))
+                    );
+        }
+
+        @Test
         void should_return_FORBIDDEN_when_not_admin() {
             persistTag();
 
@@ -428,6 +480,22 @@ class AuditGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .errors()
                     .verify()
                     .path("revisionAuthors").entityList(String.class).contains("system");
+        }
+
+        @Test
+        void should_leave_out_those_who_changed_only_base_data() {
+            persistBaseDataBy("spexipedia");
+            persistTag();
+
+            httpGraphQlTester
+                    .mutate()
+                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
+                    .build()
+                    .documentName("audit/revisionAuthors")
+                    .execute()
+                    .errors()
+                    .verify()
+                    .path("revisionAuthors").entityList(String.class).contains("system").doesNotContain("spexipedia");
         }
     }
 

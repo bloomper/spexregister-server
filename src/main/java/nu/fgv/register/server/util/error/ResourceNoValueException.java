@@ -21,7 +21,7 @@ import org.springframework.web.ErrorResponse;
 import org.springframework.web.server.ResponseStatusException;
 
 /**
- * The resource exists but lacks the value asked for, such as a poster: 404, and {@code NOT_FOUND} in GraphQL.
+ * The resource exists but lacks the value asked for, such as a spexare's image: 404, and {@code NOT_FOUND} in GraphQL.
  *
  * @author Anders Jacobsson
  * @since 2.0

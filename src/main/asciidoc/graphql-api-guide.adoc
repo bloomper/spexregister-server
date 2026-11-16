@@ -56,7 +56,7 @@ Spexregister Server uses the following roles:
 |===
 
 REVIVAL reads spex, tasks, task categories and tags, and every spexare, published or not, with their addresses, consents and activities, but only the birth date of the personal identity number and never their memberships or user account.
-It creates spexare, addresses, consents, memberships, revivals, activities, spex and task activities, actors and taggings, and updates addresses and consents.
+It creates spexare, addresses, consents, memberships, activities, spex and task activities, actors and taggings, and updates addresses and consents.
 It deletes nothing.
 
 [[acting_person]]

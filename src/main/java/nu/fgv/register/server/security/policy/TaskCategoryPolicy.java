@@ -26,13 +26,13 @@ import static nu.fgv.register.server.security.policy.Caller.SPEXIPEDIA;
 import static nu.fgv.register.server.security.policy.Caller.USER;
 
 /**
- * Every role reads task categories; only administrators change them.
+ * Every role reads task categories, Spexipedia included; nobody changes them. Read only: Spexipedia keeps base data,
+ * and Spexregister's copy is written only by the sync.
  *
  * @author Anders Jacobsson
  * @since 2.0
  */
 @Component
-// Read only: Spexipedia keeps base data, and Spexregister's copy is written only by the sync
 public class TaskCategoryPolicy extends ReferenceDataPolicy<TaskCategory> {
 
     public TaskCategoryPolicy() {

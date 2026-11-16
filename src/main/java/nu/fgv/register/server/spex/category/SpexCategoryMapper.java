@@ -16,17 +16,12 @@
 
 package nu.fgv.register.server.spex.category;
 
-import nu.fgv.register.server.util.FileUtil;
-import org.mapstruct.BeanMapping;
-import org.mapstruct.InheritConfiguration;
 import org.mapstruct.Mapper;
 import org.mapstruct.MapperConfig;
 import org.mapstruct.Mapping;
-import org.mapstruct.MappingTarget;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 import org.mapstruct.ReportingPolicy;
 import org.mapstruct.factory.Mappers;
-import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 
 import java.util.Optional;
 
@@ -48,10 +43,5 @@ public interface SpexCategoryMapper {
 
     @Mapping(target = "id", source = "uuid")
     SpexCategoryDto toDto(SpexCategory model);
-
-    @Mapping(target = "action", expression = "java(nu.fgv.register.server.impex.model.ImpexAction.UPDATE)")
-    @Mapping(target = "rowNumber", ignore = true)
-    @Mapping(target = "id", source = "uuid")
-    SpexCategoryImpexDto toImpexDto(SpexCategory model);
 
 }

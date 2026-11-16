@@ -24,6 +24,5 @@ package nu.fgv.register.server.permission;
  */
 public enum PermissionGrantScope {
     SPEXARE,
-    SPEX_PARTICIPANTS,
-    SPEX
+    SPEX_PARTICIPANTS
 }

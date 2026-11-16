@@ -1,3 +1,0 @@
-mutation taskCategoryRemove ($taskId: ID!) {
-    taskCategoryRemove(taskId: $taskId)
-}

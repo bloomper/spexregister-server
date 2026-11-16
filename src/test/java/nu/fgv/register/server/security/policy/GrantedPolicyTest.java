@@ -17,7 +17,6 @@
 package nu.fgv.register.server.security.policy;
 
 import nu.fgv.register.server.permission.PermissionGrants;
-import nu.fgv.register.server.spex.Spex;
 import nu.fgv.register.server.spexare.Spexare;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -33,7 +32,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
- * Grants add rights on spexare and spexes, and never take any away.
+ * Grants add rights on spexare, and never take any away.
  *
  * @author Anders Jacobsson
  * @since 2.0
@@ -42,7 +41,6 @@ class GrantedPolicyTest {
 
     private final PermissionGrants grants = mock(PermissionGrants.class);
     private final SpexarePolicy spexarePolicy = new SpexarePolicy(grants);
-    private final SpexPolicy spexPolicy = new SpexPolicy(grants);
 
     private static Spexare unpublishedSpexare() {
         final Spexare spexare = new Spexare();
@@ -69,24 +67,12 @@ class GrantedPolicyTest {
         assertThat(spexarePolicy.permits(caller("USER"), spexare, Permission.DELETE)).isFalse();
     }
 
-    @ParameterizedTest
-    @EnumSource(Permission.class)
-    void should_let_a_grant_on_a_spex_cover_reading_only(final Permission permission) {
-        final Spex spex = new Spex();
-        when(grants.covers(any(Caller.class), eq(spex), eq(permission))).thenReturn(true);
-
-        // Spexipedia keeps base data: no grant lets anyone change Spexregister's copy
-        assertThat(spexPolicy.permits(caller("USER"), spex, permission)).isEqualTo(permission == Permission.READ);
-    }
-
     @Test
     void should_not_ask_for_grants_when_the_rules_already_allow() {
         final Spexare spexare = unpublishedSpexare();
 
         assertThat(spexarePolicy.permits(caller("EDITOR"), spexare, Permission.WRITE)).isTrue();
-        assertThat(spexPolicy.permits(caller("ADMIN"), new Spex(), Permission.READ)).isTrue();
         verify(grants, never()).covers(any(Caller.class), any(Spexare.class), any());
-        verify(grants, never()).covers(any(Caller.class), any(Spex.class), any());
     }
 
     @Test
@@ -96,7 +82,5 @@ class GrantedPolicyTest {
 
         assertThat(spexarePolicy.permits(caller("USER"), published, Permission.READ)).isTrue();
         assertThat(spexarePolicy.permits(caller("USER"), unpublishedSpexare(), Permission.READ)).isFalse();
-        assertThat(spexPolicy.permits(caller("USER"), new Spex(), Permission.READ)).isTrue();
-        assertThat(spexPolicy.permits(caller("USER"), new Spex(), Permission.WRITE)).isFalse();
     }
 }

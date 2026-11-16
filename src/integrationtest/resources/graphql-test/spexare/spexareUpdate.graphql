@@ -49,26 +49,6 @@ mutation spexareUpdate ($id: ID!, $firstName: String!, $lastName: String!, $nick
                                 lastModifiedBy
                                 lastModifiedAt
                             }
-                            revivalsPaged (first: $first) {
-                                edges {
-                                    cursor
-                                    node {
-                                        id
-                                        year
-                                        createdBy
-                                        createdAt
-                                        lastModifiedBy
-                                        lastModifiedAt
-                                    }
-                                }
-                                pageInfo {
-                                    hasPreviousPage
-                                    hasNextPage
-                                    startCursor
-                                    endCursor
-                                }
-                                totalCount
-                            }
                         }
                         createdBy
                         createdAt
@@ -256,26 +236,6 @@ mutation spexareUpdate ($id: ID!, $firstName: String!, $lastName: String!, $nick
                         createdAt
                         lastModifiedBy
                         lastModifiedAt
-                    }
-                    revivalsPaged (first: $first) {
-                        edges {
-                            cursor
-                            node {
-                                id
-                                year
-                                createdBy
-                                createdAt
-                                lastModifiedBy
-                                lastModifiedAt
-                            }
-                        }
-                        pageInfo {
-                            hasPreviousPage
-                            hasNextPage
-                            startCursor
-                            endCursor
-                        }
-                        totalCount
                     }
                 }
                 createdBy

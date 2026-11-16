@@ -15,7 +15,8 @@
  */
 
 /**
- * Task categories, which group tasks and say whether they are performed on stage.
+ * Task categories, which group tasks and say whether they are performed on stage. Read only: Spexipedia keeps them, and
+ * only the sync writes this copy.
  */
 @org.jspecify.annotations.NullMarked
 package nu.fgv.register.server.task.category;

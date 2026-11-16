@@ -280,7 +280,7 @@ Use the obtained access token when invoking the API endpoints.
 [[mcp_server]]
 == MCP server
 
-Spexregister Server exposes an MCP (Model Context Protocol) server at ``/api/mcp`` (stateless streamable HTTP), letting AI assistants manage spex, spex revivals, spex categories, tasks, task categories, news and tags.
+Spexregister Server exposes an MCP (Model Context Protocol) server at ``/api/mcp`` (stateless streamable HTTP), letting AI assistants manage news and tags and read user statistics. Spex, spex categories, tasks and task categories are kept in Spexipedia, whose own MCP server offers them.
 Spexare and individual users are intentionally not exposed; the only user-related tool returns aggregated counts (users per state and accounts pending approval) and requires the admin role.
 
 Every tool call runs with the permissions of the signed-in user, and changes are recorded in the audit history with source ``MCP``.

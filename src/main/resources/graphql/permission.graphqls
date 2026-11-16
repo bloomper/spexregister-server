@@ -7,8 +7,8 @@ extend type Query {
 
 extend type Mutation {
     """
-    ADMIN. Names exactly one of userId and role (USER, EDITOR or ADMIN). A SPEXARE grant names spexareId; the other
-    scopes name spexId. validUntil may not be in the past.
+    ADMIN. Names exactly one of userId and role (USER, EDITOR or ADMIN). A SPEXARE grant names spexareId; a
+    SPEX_PARTICIPANTS grant names spexId. validUntil may not be in the past.
     """
     permissionGrantCreate(input: PermissionGrantCreate!): PermissionGrant
     "ADMIN. Changes the permission and validUntil; who and what the grant applies to are fixed."
@@ -25,11 +25,10 @@ enum Permission {
     ADMINISTRATION
 }
 
-"What a grant applies to: one spexare, everyone with a spex activity in a spex, or a spex."
+"What a grant applies to: one spexare, or everyone with a spex activity in a spex."
 enum PermissionGrantScope {
     SPEXARE
     SPEX_PARTICIPANTS
-    SPEX
 }
 
 "What the caller may do with the object, so a client shows only the actions the server allows."
@@ -89,11 +88,6 @@ input PermissionGrantUpdate {
 
 extend type Spexare {
     "What the caller may do with the spexare."
-    permissions: Permissions!
-}
-
-extend type Spex {
-    "What the caller may do with the spex."
     permissions: Permissions!
 }
 

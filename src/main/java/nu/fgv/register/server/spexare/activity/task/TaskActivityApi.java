@@ -21,7 +21,6 @@ import lombok.extern.slf4j.Slf4j;
 import nu.fgv.register.server.spexare.SpexareApi;
 import nu.fgv.register.server.spexare.activity.ActivityApi;
 import nu.fgv.register.server.spexare.activity.task.actor.ActorApi;
-import nu.fgv.register.server.task.TaskApi;
 import nu.fgv.register.server.task.TaskDto;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
 import org.springframework.data.domain.Pageable;
@@ -63,7 +62,6 @@ public class TaskActivityApi {
 
     private final TaskActivityService service;
     private final PagedResourcesAssembler<TaskActivityDto> pagedResourcesAssembler;
-    private final TaskApi taskApi;
 
     @GetMapping(produces = MediaTypes.HAL_JSON_VALUE)
     @RequiresAdminOrEditorOrUser
@@ -115,7 +113,9 @@ public class TaskActivityApi {
     public ResponseEntity<EntityModel<TaskDto>> retrieveTask(@PathVariable final UUID spexareId, @PathVariable final UUID activityId, @PathVariable final UUID id) {
         final TaskDto dto = service.findTaskByTaskActivity(spexareId, activityId, id);
 
-        return ResponseEntity.ok(EntityModel.of(dto, taskApi.getLinks(dto, false)));
+        return ResponseEntity.ok(EntityModel.of(dto, List.of(
+                linkTo(methodOn(TaskActivityApi.class).retrieveTask(spexareId, activityId, id)).withSelfRel(),
+                linkTo(methodOn(TaskActivityApi.class).retrieve(spexareId, activityId, id)).withRel("task-activity"))));
     }
 
     private void addLinks(final EntityModel<TaskActivityDto> entity, final UUID spexareId, final UUID activityId) {

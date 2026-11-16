@@ -54,8 +54,6 @@ class RevivalOperationsTest {
             // Reference data
             "Query.spexPaged",
             "Query.spex",
-            "Query.spexRevival",
-            "Spex.revivalsPaged",
             "Spex.revivals",
             "Query.taskPaged",
             "Query.task",
@@ -176,7 +174,7 @@ class RevivalOperationsTest {
     }
 
     @Test
-    void should_let_revival_through_to_no_rest_operation_but_reading_spexes() {
+    void should_let_revival_through_to_no_rest_operation() {
         // Revivals are created in Spexipedia now, so no REST operation is open to Nyuppsättning
         assertThat(restControllersOpenToRevival()).isEmpty();
     }

@@ -26,26 +26,6 @@ query spexPaged ($first: Int = 10, $filter: String = "") {
                     lastModifiedBy
                     lastModifiedAt
                 }
-                revivalsPaged (first: $first) {
-                    edges {
-                        cursor
-                        node {
-                            id
-                            year
-                            createdBy
-                            createdAt
-                            lastModifiedBy
-                            lastModifiedAt
-                        }
-                    }
-                    pageInfo {
-                        hasPreviousPage
-                        hasNextPage
-                        startCursor
-                        endCursor
-                    }
-                    totalCount
-                }
                 revivals {
                     id
                     year

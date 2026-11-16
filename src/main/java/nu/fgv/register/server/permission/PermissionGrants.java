@@ -124,32 +124,6 @@ public class PermissionGrants {
     }
 
     /**
-     * The spex granted directly.
-     *
-     * @param caller     who is asking
-     * @param permission the permission asked for
-     * @return a restriction to add to a spex query
-     */
-    public Specification<Spex> coveringSpex(final Caller caller, final Permission permission) {
-        return (root, query, criteriaBuilder) -> {
-            if (!holdsAny(caller, permission)) {
-                return criteriaBuilder.disjunction();
-            }
-
-            final Subquery<Long> grants = query.subquery(Long.class);
-            final Root<PermissionGrant> grant = grants.from(PermissionGrant.class);
-
-            grants.select(grant.get(PermissionGrant_.id))
-                    .where(criteriaBuilder.and(
-                            applies(criteriaBuilder, grant, caller, permission),
-                            criteriaBuilder.equal(grant.get(PermissionGrant_.scope), PermissionGrantScope.SPEX),
-                            criteriaBuilder.equal(grant.get(PermissionGrant_.spex), root)));
-
-            return criteriaBuilder.exists(grants);
-        };
-    }
-
-    /**
      * Whether a grant covers the spexare, as {@link #coveringSpexare} does for queries.
      *
      * @param caller     who is asking
@@ -186,24 +160,6 @@ public class PermissionGrants {
         }
 
         return false;
-    }
-
-    /**
-     * Whether a grant covers the spex, as {@link #coveringSpex} does for queries.
-     *
-     * @param caller     who is asking
-     * @param spex       the loaded spex
-     * @param permission the permission asked for
-     * @return whether a grant covers it
-     */
-    public boolean covers(final Caller caller, final Spex spex, final Permission permission) {
-        if (!mayHoldGrants(caller) || spex.getId() == null) {
-            return false;
-        }
-
-        return grantsOf(caller, permission).stream()
-                .anyMatch(grant -> grant.getScope() == PermissionGrantScope.SPEX
-                        && grant.getSpex() != null && spex.getId().equals(grant.getSpex().getId()));
     }
 
     /**

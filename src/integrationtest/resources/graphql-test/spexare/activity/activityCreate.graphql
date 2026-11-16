@@ -35,26 +35,6 @@ mutation activityCreate ($spexareId: ID!, $first: Int = 10) {
                     lastModifiedBy
                     lastModifiedAt
                 }
-                revivalsPaged (first: $first) {
-                    edges {
-                        cursor
-                        node {
-                            id
-                            year
-                            createdBy
-                            createdAt
-                            lastModifiedBy
-                            lastModifiedAt
-                        }
-                    }
-                    pageInfo {
-                        hasPreviousPage
-                        hasNextPage
-                        startCursor
-                        endCursor
-                    }
-                    totalCount
-                }
             }
             createdBy
             createdAt

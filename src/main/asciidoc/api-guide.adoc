@@ -122,7 +122,7 @@ Spexregister Server uses the following roles:
 
 |===
 
-REVIVAL works through the xref:graphql-api-guide.adoc#roles[GraphQL API]; of the REST API it may only download spex posters.
+REVIVAL works only through the xref:graphql-api-guide.adoc#roles[GraphQL API]; it may not use the REST API.
 
 [[acting_person]]
 === Acting person
@@ -165,7 +165,8 @@ Example: ``firstName:anders OR ( nickName:colgate AND lastName:jacobsson )``
 [[resources]]
 == Resources
 
-Spexregister Server uses the following resources:
+Spexregister Server uses the following resources.
+Spex, spex categories, tasks and task categories are kept in Spexipedia; their read-only copy here is offered through the xref:graphql-api-guide.adoc[GraphQL API] only.
 
 * xref:resources/analytics.adoc[Analytics]
 * xref:resources/audit.adoc[Revisions]
@@ -173,8 +174,6 @@ Spexregister Server uses the following resources:
 * xref:resources/job.adoc[Job]
 * xref:resources/news.adoc[News]
 * xref:resources/settings.adoc[Settings]
-* xref:resources/spex.adoc[Spex]
-** xref:resources/spex-category.adoc[Spex category]
 * xref:resources/saved-search.adoc[Saved search]
 * xref:resources/spexare.adoc[Spexare]
 ** xref:resources/spexare-activity.adoc[Activity]
@@ -188,8 +187,6 @@ Spexregister Server uses the following resources:
 ** xref:resources/spexare-tagging.adoc[Tag]
 ** xref:resources/spexare-toggle.adoc[Toggle]
 * xref:resources/tag.adoc[Tag]
-* xref:resources/task.adoc[Task]
-** xref:resources/task-category.adoc[Task category]
 * xref:resources/user.adoc[User]
 ** xref:resources/user-authority.adoc[Authority]
 ** xref:resources/user-state.adoc[State]

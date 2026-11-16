@@ -67,17 +67,13 @@ public class AuditDataSeeder {
             AuditedTable.of("nu.fgv.register.server.news.News", "news", "id, uuid, visible_from, visible_to, subject, text, published")
                     .withHistory("subject = LEFT(CONCAT('Utkast: ', subject), 255)", "published = 1 - COALESCE(published, 0)"),
             AuditedTable.of("nu.fgv.register.server.image.Image", "image", "id, data, content_type"),
-            AuditedTable.of("nu.fgv.register.server.spex.category.SpexCategory", "spex_category", "id, uuid, name, first_year, logo_url, retired")
-                    .withHistory("name = LEFT(CONCAT(name, ' (arbetsnamn)'), 255)"),
-            AuditedTable.of("nu.fgv.register.server.spex.SpexDetails", "spex_details", "id, uuid, title, category_id")
-                    .withHistory("title = LEFT(CONCAT(title, ' (arbetstitel)'), 255)"),
-            AuditedTable.of("nu.fgv.register.server.spex.Spex", "spex", "id, uuid, year, parent_id, details_id, poster_url, retired")
-                    .withHistory("year = CAST(CAST(year AS UNSIGNED) - 1 AS CHAR)"),
+            // Base data gets only the baseline: Spexipedia keeps it, and its history is not in the change log
+            AuditedTable.of("nu.fgv.register.server.spex.category.SpexCategory", "spex_category", "id, uuid, name, first_year, logo_url, retired"),
+            AuditedTable.of("nu.fgv.register.server.spex.SpexDetails", "spex_details", "id, uuid, title, category_id"),
+            AuditedTable.of("nu.fgv.register.server.spex.Spex", "spex", "id, uuid, year, parent_id, details_id, poster_url, retired"),
             AuditedTable.of("nu.fgv.register.server.spex.character.SpexCharacter", "spex_character", "id, uuid, spex_id, name, position, retired"),
-            AuditedTable.of("nu.fgv.register.server.task.category.TaskCategory", "task_category", "id, uuid, name, actor_present, board, retired")
-                    .withHistory("name = LEFT(CONCAT(name, ' (preliminär)'), 255)"),
-            AuditedTable.of("nu.fgv.register.server.task.Task", "task", "id, uuid, name, category_id, retired")
-                    .withHistory("name = LEFT(CONCAT(name, ' (preliminär)'), 255)"),
+            AuditedTable.of("nu.fgv.register.server.task.category.TaskCategory", "task_category", "id, uuid, name, actor_present, board, retired"),
+            AuditedTable.of("nu.fgv.register.server.task.Task", "task", "id, uuid, name, category_id, retired"),
             AuditedTable.of("nu.fgv.register.server.spexare.Spexare", "spexare",
                             "id, uuid, first_name, last_name, nick_name, social_security_number, deceased, published, graduation, comment, image_id, partner_id")
                     .withHistory("comment = CONCAT('(tidigare) ', COALESCE(comment, ''))", "graduation = LEFT(CONCAT('(tidigare) ', COALESCE(graduation, '')), 255)", "nick_name = LEFT(CONCAT('(tidigare) ', COALESCE(nick_name, '')), 255)"),

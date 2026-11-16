@@ -18,11 +18,6 @@ package nu.fgv.register.server.spex;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import jakarta.persistence.Column;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -34,6 +29,8 @@ import org.jspecify.annotations.Nullable;
 import java.util.UUID;
 
 /**
+ * A row of the read-only lookup sheet of spex in the spexare export. Never imported: Spexipedia keeps them.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */
@@ -48,16 +45,10 @@ public class SpexImpexDto extends AbstractAuditableImpexDto<SpexImpexDto> {
     @ExcelCell(header = "spex.impex.id.columnName", position = 1, primaryKey = true)
     private UUID id;
 
-    @NotBlank(message = "{spex.year.notEmpty}")
-    @Size(max = 4, message = "{spex.year.size}")
-    @Pattern(regexp = "^(19|20|21)\\d{2}$", message = "{spex.year.regexp}")
     @JsonProperty("year")
     @ExcelCell(header = "spex.impex.year.columnName", position = 2, updatable = true, mandatory = true)
     private String year;
 
-    @NotBlank(message = "{spex.title.notEmpty}")
-    @Size(max = 255, message = "{spex.title.size}")
-    @Column(name = "title", nullable = false)
     @JsonProperty("title")
     @ExcelCell(header = "spex.impex.title.columnName", position = 3, updatable = true, mandatory = true)
     private String title;
@@ -67,7 +58,6 @@ public class SpexImpexDto extends AbstractAuditableImpexDto<SpexImpexDto> {
     @ExcelCell(header = "spex.impex.posterUrl.columnName", position = 4, updatable = true)
     private String posterUrl;
 
-    @NotNull(message = "{spex.category.notEmpty}")
     @JsonProperty("categoryId")
     @ExcelCell(header = "spex.impex.category.id.columnName", position = 5, updatable = true)
     private UUID categoryId;

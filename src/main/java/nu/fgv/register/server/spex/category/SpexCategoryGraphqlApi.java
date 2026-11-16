@@ -16,34 +16,23 @@
 
 package nu.fgv.register.server.spex.category;
 
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import nu.fgv.register.server.impex.JobService;
-import nu.fgv.register.server.impex.model.ImpexType;
-import nu.fgv.register.server.impex.model.JobReferenceDto;
 import nu.fgv.register.server.util.graphql.CountedWindow;
-import nu.fgv.register.server.util.security.RequiresAdmin;
-import nu.fgv.register.server.util.security.RequiresAdminOrEditor;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
-import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Sort;
 import org.springframework.graphql.data.method.annotation.Argument;
-import org.springframework.graphql.data.method.annotation.MutationMapping;
 import org.springframework.graphql.data.method.annotation.QueryMapping;
 import org.springframework.graphql.data.query.ScrollSubrange;
 import org.springframework.stereotype.Controller;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
 
 import static nu.fgv.register.server.util.graphql.GraphqlUtil.extractScrollRequest;
 
 /**
- * The {@code SpexCategory} queries and mutations.
+ * The {@code SpexCategory} queries. Read only: Spexipedia keeps the categories and the sync writes the copy here.
  *
  * @author Anders Jacobsson
  * @since 2.0
@@ -54,20 +43,11 @@ import static nu.fgv.register.server.util.graphql.GraphqlUtil.extractScrollReque
 public class SpexCategoryGraphqlApi {
 
     private final SpexCategoryService service;
-    private final JobService jobService;
 
     @QueryMapping("spexCategoryPaged")
     @RequiresAdminOrEditorOrUser
     public CountedWindow<SpexCategoryDto> retrieve(final ScrollSubrange subrange, @Argument final Optional<String> filter, final Optional<Sort> sort) {
         return service.find(filter.orElse(""), extractScrollRequest(subrange), sort.orElse(Sort.unsorted()));
-    }
-
-    @QueryMapping("spexCategoryExport")
-    @RequiresAdminOrEditor
-    public JobReferenceDto export(@Nullable @Argument final List<UUID> ids, @Nullable @Argument final String filter, @Argument final ImpexType type, final Locale locale) {
-        return JobReferenceDto.builder()
-                .id(jobService.createExportJob(SpexCategoryExportService.class, Optional.ofNullable(ids).orElse(Collections.emptyList()), Optional.ofNullable(filter).orElse(""), type, locale))
-                .build();
     }
 
     @QueryMapping("spexCategory")

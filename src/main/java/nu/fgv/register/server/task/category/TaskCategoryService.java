@@ -21,28 +21,19 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nu.fgv.register.server.security.policy.Permission;
 import nu.fgv.register.server.security.policy.PermissionService;
-import nu.fgv.register.server.util.error.InternalErrorException;
 import nu.fgv.register.server.util.error.ResourceNotFoundException;
 import nu.fgv.register.server.util.filter.FilterParser;
 import nu.fgv.register.server.util.filter.SpecificationsBuilder;
 import nu.fgv.register.server.util.graphql.CountedWindow;
 import nu.fgv.register.server.util.graphql.GraphqlUtil.ScrollRequest;
-import nu.fgv.register.server.util.security.RequiresAdmin;
-import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
 import nu.fgv.register.server.util.security.RequiresReferenceDataReader;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 import static nu.fgv.register.server.task.category.TaskCategoryMapper.TASK_CATEGORY_MAPPER;
 import static nu.fgv.register.server.task.category.TaskCategorySpecification.NO_FILTER;
-import static nu.fgv.register.server.task.category.TaskCategorySpecification.hasIds;
 import static org.springframework.util.StringUtils.hasText;
 
 /**
@@ -86,24 +77,6 @@ public class TaskCategoryService {
     }
 
     /**
-     * The task categories the caller may read that match the filter, for the REST API.
-     *
-     * @param filter   a filter expression, or blank for all
-     * @param pageable the page to read
-     * @return the page
-     */
-    @RequiresAdminOrEditorOrUser
-    public Page<TaskCategoryDto> find(final String filter, final Pageable pageable) {
-        return hasText(filter) ?
-                repository
-                        .findAll(SpecificationsBuilder.<TaskCategory>builder().build(FilterParser.parse(filter), TaskCategorySpecification::new), pageable, Permission.READ)
-                        .map(TASK_CATEGORY_MAPPER::toDto) :
-                repository
-                        .findAll(pageable, Permission.READ)
-                        .map(TASK_CATEGORY_MAPPER::toDto);
-    }
-
-    /**
      * @param id the task category id
      * @return the task category
      * @throws nu.fgv.register.server.util.error.ResourceNotFoundException when there is no such task category
@@ -116,46 +89,4 @@ public class TaskCategoryService {
                 .orElseThrow(() -> new ResourceNotFoundException(TaskCategory.class, id));
     }
 
-    /**
-     * @param id the task category id
-     * @return whether the task category exists
-     * @throws org.springframework.security.access.AccessDeniedException when it exists but may not be read
-     */
-    @RequiresAdminOrEditorOrUser
-    public boolean exists(final UUID id) {
-        return repository
-                .findByUuid0(id)
-                .isPresent();
-    }
-
-    /**
-     * The task categories to export, streamed when iterated, so it must be consumed inside a transaction.
-     *
-     * @param ids    the task categories to export, or empty to use the filter
-     * @param filter a filter expression when no ids are given, or blank for all
-     * @param sort   the order
-     * @return the task categories the caller may read
-     */
-    @RequiresAdminOrEditorOrUser
-    public Iterable<TaskCategory> streamByIds(final List<UUID> ids, final String filter, final Sort sort) {
-        return () -> {
-            final Specification<TaskCategory> spec;
-
-            if (!ids.isEmpty()) {
-                spec = hasIds(ids);
-            } else if (hasText(filter)) {
-                spec = SpecificationsBuilder.<TaskCategory>builder()
-                        .build(FilterParser.parse(filter), TaskCategorySpecification::new);
-            } else {
-                spec = null;
-            }
-
-            return repository.streamAll(spec, sort, Permission.READ)
-                    .iterator();
-        };
-    }
-
-    private boolean doesTaskCategoryExist(final UUID id) {
-        return repository.findByUuid0(id).isPresent();
-    }
 }

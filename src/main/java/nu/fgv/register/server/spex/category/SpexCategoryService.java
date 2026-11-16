@@ -19,33 +19,21 @@ package nu.fgv.register.server.spex.category;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import nu.fgv.register.server.image.Image;
 import nu.fgv.register.server.security.policy.Permission;
 import nu.fgv.register.server.security.policy.PermissionService;
-import nu.fgv.register.server.util.error.InternalErrorException;
-import nu.fgv.register.server.util.error.ResourceNoValueException;
 import nu.fgv.register.server.util.error.ResourceNotFoundException;
 import nu.fgv.register.server.util.filter.FilterParser;
 import nu.fgv.register.server.util.filter.SpecificationsBuilder;
 import nu.fgv.register.server.util.graphql.CountedWindow;
 import nu.fgv.register.server.util.graphql.GraphqlUtil.ScrollRequest;
-import nu.fgv.register.server.util.security.RequiresAdmin;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.jpa.domain.Specification;
-import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 import static nu.fgv.register.server.spex.category.SpexCategoryMapper.SPEX_CATEGORY_MAPPER;
 import static nu.fgv.register.server.spex.category.SpexCategorySpecification.NO_FILTER;
-import static nu.fgv.register.server.spex.category.SpexCategorySpecification.hasIds;
-import static nu.fgv.register.server.util.FileUtil.requireSupportedImageMimeType;
 import static org.springframework.util.StringUtils.hasText;
 
 /**
@@ -89,24 +77,6 @@ public class SpexCategoryService {
     }
 
     /**
-     * The spex categories the caller may read that match the filter, for the REST API.
-     *
-     * @param filter   a filter expression, or blank for all
-     * @param pageable the page to read
-     * @return the page
-     */
-    @RequiresAdminOrEditorOrUser
-    public Page<SpexCategoryDto> find(final String filter, final Pageable pageable) {
-        return hasText(filter) ?
-                repository
-                        .findAll(SpecificationsBuilder.<SpexCategory>builder().build(FilterParser.parse(filter), SpexCategorySpecification::new), pageable, Permission.READ)
-                        .map(SPEX_CATEGORY_MAPPER::toDto) :
-                repository
-                        .findAll(pageable, Permission.READ)
-                        .map(SPEX_CATEGORY_MAPPER::toDto);
-    }
-
-    /**
      * @param id the spex category id
      * @return the spex category
      * @throws nu.fgv.register.server.util.error.ResourceNotFoundException when there is no such spex category
@@ -119,46 +89,4 @@ public class SpexCategoryService {
                 .orElseThrow(() -> new ResourceNotFoundException(SpexCategory.class, id));
     }
 
-    /**
-     * @param id the spex category id
-     * @return whether the spex category exists
-     * @throws org.springframework.security.access.AccessDeniedException when it exists but may not be read
-     */
-    @RequiresAdminOrEditorOrUser
-    public boolean exists(final UUID id) {
-        return repository
-                .findByUuid0(id)
-                .isPresent();
-    }
-
-    /**
-     * The spex categories to export, streamed when iterated, so it must be consumed inside a transaction.
-     *
-     * @param ids    the spex categories to export, or empty to use the filter
-     * @param filter a filter expression when no ids are given, or blank for all
-     * @param sort   the order
-     * @return the spex categories the caller may read
-     */
-    @RequiresAdminOrEditorOrUser
-    public Iterable<SpexCategory> streamByIds(final List<UUID> ids, final String filter, final Sort sort) {
-        return () -> {
-            final Specification<SpexCategory> spec;
-
-            if (!ids.isEmpty()) {
-                spec = hasIds(ids);
-            } else if (hasText(filter)) {
-                spec = SpecificationsBuilder.<SpexCategory>builder()
-                        .build(FilterParser.parse(filter), SpexCategorySpecification::new);
-            } else {
-                spec = null;
-            }
-
-            return repository.streamAll(spec, sort, Permission.READ)
-                    .iterator();
-        };
-    }
-
-    private boolean doesSpexCategoryExist(final UUID id) {
-        return repository.findByUuid0(id).isPresent();
-    }
 }

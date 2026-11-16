@@ -19,7 +19,6 @@ package nu.fgv.register.server.permission;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import nu.fgv.register.server.security.policy.Caller;
-import nu.fgv.register.server.spex.Spex;
 import nu.fgv.register.server.spex.SpexRepository;
 import nu.fgv.register.server.spexare.Spexare;
 import nu.fgv.register.server.spexare.SpexareRepository;
@@ -101,8 +100,8 @@ public class PermissionGrantService {
 
     /**
      * Creates a grant to exactly one of a user and a grantable role ({@code USER}, {@code EDITOR} or {@code ADMIN}). A
-     * {@link PermissionGrantScope#SPEXARE} grant names a spexare and no spex; the other scopes name a spex and no
-     * spexare.
+     * {@link PermissionGrantScope#SPEXARE} grant names a spexare and no spex; a
+     * {@link PermissionGrantScope#SPEX_PARTICIPANTS} grant names a spex and no spexare.
      *
      * @param dto the grant
      * @return the created grant
@@ -182,15 +181,6 @@ public class PermissionGrantService {
      */
     public void deleteBySpexare(final Spexare spexare) {
         repository.deleteAll(repository.findBySpexareId(spexare.getId()));
-    }
-
-    /**
-     * Removes the grants on the spex, before it is removed.
-     *
-     * @param spex the spex being removed
-     */
-    public void deleteBySpex(final Spex spex) {
-        repository.deleteAll(repository.findBySpexId(spex.getId()));
     }
 
     /**

@@ -21,7 +21,6 @@ import nu.fgv.register.server.spex.category.SpexCategoryRepository;
 import nu.fgv.register.server.util.AbstractAuditable;
 import nu.fgv.register.server.util.AbstractGraphqlIntegrationTest;
 import nu.fgv.register.server.util.filter.FilterOperation;
-import nu.fgv.register.server.util.graphql.CustomErrorType;
 import nu.fgv.register.server.util.randomizer.RandomizerSupport;
 import nu.fgv.register.server.util.randomizer.YearRandomizer;
 import org.jeasy.random.EasyRandom;
@@ -37,21 +36,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.graphql.execution.ErrorType;
 import org.springframework.graphql.test.tester.HttpGraphQlTester;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.test.jdbc.JdbcTestUtils;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.test.web.servlet.client.RestTestClient;
-import org.springframework.util.ResourceUtils;
 import org.springframework.web.client.ApiVersionInserter;
-import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.ObjectMapper;
 
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.IntStream;
 
@@ -380,33 +373,6 @@ class SpexGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
                     .path("spexPaged.totalCount").entity(Integer.class).isEqualTo(10)
                     .path("spexPaged.pageInfo.hasNextPage").entity(Boolean.class).isEqualTo(false)
                     .path("spexPaged.edges[*].node.id").entityList(String.class).isEqualTo(asStrings(matching.subList(6, 10)));
-        }
-
-        @Test
-        void should_return_last_page_of_revivals() {
-            final var category = persistSpexCategory(randomizeSpexCategory());
-            final var parent = persistSpex(randomizeSpex(category));
-            final List<UUID> revivals = IntStream.range(0, 12)
-                    .mapToObj(_ -> {
-                        final var revival = persistRevival(randomizeRevival(parent));
-                        return revival.getUuid();
-                    })
-                    .toList();
-
-            httpGraphQlTester
-                    .mutate()
-                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainUserAccessToken()))
-                    .build()
-                    .documentName("spex/spexRevivalsPagedCursor")
-                    .variable("id", parent.getUuid())
-                    .variable("last", 5)
-                    .execute()
-                    .errors()
-                    .verify()
-                    .path("spex.revivalsPaged.totalCount").entity(Integer.class).isEqualTo(12)
-                    .path("spex.revivalsPaged.pageInfo.hasNextPage").entity(Boolean.class).isEqualTo(false)
-                    .path("spex.revivalsPaged.pageInfo.hasPreviousPage").entity(Boolean.class).isEqualTo(true)
-                    .path("spex.revivalsPaged.edges[*].node.id").entityList(String.class).isEqualTo(asStrings(revivals.subList(7, 12)));
         }
 
         private List<String> asStrings(final List<UUID> ids) {

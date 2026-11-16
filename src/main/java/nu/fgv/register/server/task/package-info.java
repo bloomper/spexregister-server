@@ -15,7 +15,8 @@
  */
 
 /**
- * Tasks, the roles a spexare can have in a spex such as director or musician, and their categories.
+ * Tasks, the roles a spexare can have in a spex such as director or musician, and their categories. Read only:
+ * Spexipedia keeps them, and only the sync writes this copy.
  */
 @org.jspecify.annotations.NullMarked
 package nu.fgv.register.server.task;

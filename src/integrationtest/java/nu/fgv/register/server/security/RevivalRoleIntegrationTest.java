@@ -187,13 +187,12 @@ class RevivalRoleIntegrationTest extends AbstractGraphqlIntegrationTest {
                 .path("spex.revival").entity(Boolean.class).isEqualTo(false);
 
         revivalTester()
-                .document("query spexRevival($spexId: ID!, $id: ID!) { spexRevival(spexId: $spexId, id: $id) { id revival } }")
-                .variable("spexId", original.getId())
+                .document("query spex($id: ID!) { spex(id: $id) { id revival } }")
                 .variable("id", revival.getId())
                 .execute()
                 .errors()
                 .verify()
-                .path("spexRevival.revival").entity(Boolean.class).isEqualTo(true);
+                .path("spex.revival").entity(Boolean.class).isEqualTo(true);
     }
 
     @Test

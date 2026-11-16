@@ -18,9 +18,6 @@ package nu.fgv.register.server.task;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -32,6 +29,8 @@ import org.jspecify.annotations.Nullable;
 import java.util.UUID;
 
 /**
+ * A row of the read-only lookup sheet of tasks in the spexare export. Never imported: Spexipedia keeps them.
+ *
  * @author Anders Jacobsson
  * @since 2.0
  */
@@ -46,13 +45,10 @@ public class TaskImpexDto extends AbstractAuditableImpexDto<TaskImpexDto> {
     @ExcelCell(header = "task.impex.id.columnName", position = 1, primaryKey = true)
     private UUID id;
 
-    @NotBlank(message = "{task.name.notEmpty}")
-    @Size(max = 255, message = "{task.name.size}")
     @JsonProperty("name")
     @ExcelCell(header = "task.impex.name.columnName", position = 2, updatable = true, mandatory = true)
     private String name;
 
-    @NotNull(message = "{task.category.notEmpty}")
     @JsonProperty("categoryId")
     @ExcelCell(header = "task.impex.category.id.columnName", position = 3, updatable = true)
     private UUID categoryId;

@@ -25,11 +25,15 @@ import java.util.Map;
 /**
  * What an engine read from an import file.
  *
+ * @param validationResult whether the sheets the specs name are valid, and why not
+ * @param data             the rows read, by row type, when they are
+ * @param sheetNames       every sheet in the file, including those no spec names
  * @author Anders Jacobsson
  * @since 2.0
  */
 public record ImportEngineResponse(
         ImportResultDto validationResult,
-        @Nullable Map<Class<?>, List<?>> data
+        @Nullable Map<Class<?>, List<?>> data,
+        List<String> sheetNames
 ) {
 }
