@@ -642,7 +642,7 @@ class RevivalRoleIntegrationTest extends AbstractGraphqlIntegrationTest {
         final var previous = SecurityContextHolder.getContext().getAuthentication();
 
         SecurityContextHolder.getContext().setAuthentication(
-                new TestingAuthenticationToken("admin-creator", "ignored", "ROLE_spexregister_ADMIN"));
+                new TestingAuthenticationToken("admin-creator", "ignored", "ROLE_fgv-spexregister_ADMIN"));
         try {
             return action.get();
         } finally {

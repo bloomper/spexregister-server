@@ -130,9 +130,9 @@ public class UserService {
     private final PlatformTransactionManager transactionManager;
     private final MaintenanceJobTracker tracker;
     private final JdbcClient jdbcClient;
-    @Value("${spexregister.keycloak.realm}")
+    @Value("${fgv-spexregister.keycloak.realm}")
     private String keycloakRealm;
-    @Value("${spexregister.keycloak.pending-approval-group}")
+    @Value("${fgv-spexregister.keycloak.pending-approval-group}")
     private String pendingApprovalGroup;
 
     private static List<UserRepresentation> allPages(final BiFunction<Integer, Integer, List<UserRepresentation>> fetch) {
@@ -752,9 +752,9 @@ public class UserService {
      * Adds a user for each Keycloak account with a Spexregister role that is not one yet, removes the users whose
      * accounts are gone from Keycloak, and fills in missing names from linked spexare. Each user is synced in its own
      * transaction, so one failure does not stop the rest. Runs on the
-     * {@code spexregister.jobs.sync-users.cron-expression} schedule.
+     * {@code fgv-spexregister.jobs.sync-users.cron-expression} schedule.
      */
-    @Scheduled(cron = "${spexregister.jobs.sync-users.cron-expression}")
+    @Scheduled(cron = "${fgv-spexregister.jobs.sync-users.cron-expression}")
     @Transactional(Transactional.TxType.NOT_SUPPORTED)
     public void scheduledSync() {
         runAsSystem(() -> tracker.run(MaintenanceJob.USER_SYNC, () -> {

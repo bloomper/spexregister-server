@@ -561,7 +561,7 @@ class SpexareApiTest extends AbstractApiTest {
     }
 
     @Test
-    @WithMockUser(roles = "spexregister_ADMIN")
+    @WithMockUser(roles = "fgv-spexregister_ADMIN")
     void should_delete() throws Exception {
         final var spexare = SpexareDto.builder().id(uuid(1)).firstName("FirstName").lastName("LastName").build();
 
@@ -596,7 +596,7 @@ class SpexareApiTest extends AbstractApiTest {
     }
 
     @Test
-    @WithMockUser(roles = "spexregister_EDITOR")
+    @WithMockUser(roles = "fgv-spexregister_EDITOR")
     void should_not_delete_when_purging_without_admin() throws Exception {
         mockMvc
                 .perform(

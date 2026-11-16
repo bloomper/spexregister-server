@@ -38,7 +38,7 @@ import java.util.List;
 public class SearchConfig {
 
     @Bean
-    public HibernatePropertiesCustomizer searchBeanConfigurer(@Value("${spexregister.crypto.secret-key}") final String secretKey) {
+    public HibernatePropertiesCustomizer searchBeanConfigurer(@Value("${fgv-spexregister.crypto.secret-key}") final String secretKey) {
         final SocialSecurityNumberHasher hasher = new SocialSecurityNumberHasher(secretKey);
         final BeanConfigurer configurer = context ->
                 context.define(SocialSecurityNumberHashBridge.class, BeanReference.ofInstance(new SocialSecurityNumberHashBridge(hasher)));

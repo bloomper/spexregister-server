@@ -111,7 +111,7 @@ class SpexareAutoLinkIntegrationTest extends AbstractIntegrationTest {
         final long spexare = spexare("basen@example.org");
 
         assertThat(service.autoLink(user, account("basen@example.org", true))).isTrue();
-        SecurityContextHolder.getContext().setAuthentication(new TestingAuthenticationToken("admin", "x", "ROLE_spexregister_ADMIN"));
+        SecurityContextHolder.getContext().setAuthentication(new TestingAuthenticationToken("admin", "x", "ROLE_fgv-spexregister_ADMIN"));
         try {
             service.removeSpexare(user);
         } finally {

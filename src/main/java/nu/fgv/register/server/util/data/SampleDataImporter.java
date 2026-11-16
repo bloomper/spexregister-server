@@ -137,7 +137,7 @@ public class SampleDataImporter {
 
     public SampleDataImporter(final PermissionService permissionService,
                               final AuditDataSeeder auditDataSeeder,
-                              @Value("${spexregister.crypto.secret-key}") final String secretKey,
+                              @Value("${fgv-spexregister.crypto.secret-key}") final String secretKey,
                               final ObjectProvider<SyncService> syncService,
                               final ObjectProvider<ActorCharacterService> actorCharacterService,
                               final ObjectProvider<DataSource> dataSource) {

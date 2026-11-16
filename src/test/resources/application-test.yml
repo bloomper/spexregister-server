@@ -20,6 +20,6 @@ logging:
   file:
     path: ./test-data/log_data
 
-spexregister:
+fgv-spexregister:
   impex:
     storage-path: ./test-data/impex_data

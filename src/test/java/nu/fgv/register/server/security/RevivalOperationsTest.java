@@ -48,7 +48,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class RevivalOperationsTest {
 
     private static final String BASE_PACKAGE = "nu.fgv.register.server";
-    private static final String REVIVAL = "'spexregister_REVIVAL'";
+    private static final String REVIVAL = "'fgv-spexregister_REVIVAL'";
 
     private static final Set<String> GRAPHQL_OPERATIONS = Set.of(
             // Reference data

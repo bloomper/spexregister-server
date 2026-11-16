@@ -51,10 +51,10 @@ public class NominatimGeocoder implements Geocoder {
     private final @Nullable String defaultCountry;
 
     @Autowired
-    public NominatimGeocoder(@Value("${spexregister.geocoding.url}") final String url,
-                             @Value("${spexregister.geocoding.user-agent}") final String userAgent,
-                             @Value("${spexregister.geocoding.email:}") final @Nullable String email,
-                             @Value("${spexregister.geocoding.default-country:}") final @Nullable String defaultCountry) {
+    public NominatimGeocoder(@Value("${fgv-spexregister.geocoding.url}") final String url,
+                             @Value("${fgv-spexregister.geocoding.user-agent}") final String userAgent,
+                             @Value("${fgv-spexregister.geocoding.email:}") final @Nullable String email,
+                             @Value("${fgv-spexregister.geocoding.default-country:}") final @Nullable String defaultCountry) {
         this(RestClient.builder().baseUrl(url).defaultHeader(HttpHeaders.USER_AGENT, userAgent).build(), email, defaultCountry);
     }
 

@@ -124,7 +124,7 @@ public class SpexareImportService extends AbstractImportService {
                                 final CountryService countryService,
                                 final MessageSource messageSource,
                                 final PlatformTransactionManager transactionManager,
-                                @Value("${spexregister.base-url}") final String baseUrl) {
+                                @Value("${fgv-spexregister.base-url}") final String baseUrl) {
         super(engines, messageSource, transactionManager);
         this.service = service;
         this.addressService = addressService;

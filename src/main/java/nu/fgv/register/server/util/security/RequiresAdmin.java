@@ -31,6 +31,6 @@ import java.lang.annotation.Target;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD, ElementType.TYPE})
-@PreAuthorize("hasAnyRole('spexregister_ADMIN')")
+@PreAuthorize("hasAnyRole('fgv-spexregister_ADMIN')")
 public @interface RequiresAdmin {
 }

@@ -79,11 +79,11 @@ public class SecurityConfig {
     private final String keycloakClientClientId;
     private final String graphqlBaseUrl;
 
-    public SecurityConfig(@Value("${spexregister.keycloak.url}") final String keycloakUrl,
-                          @Value("${spexregister.keycloak.realm}") final String keycloakRealm,
-                          @Value("${spexregister.keycloak.admin.client-id}") final String keycloakAdminClientId,
-                          @Value("${spexregister.keycloak.admin.client-secret}") final String keycloakAdminClientSecret,
-                          @Value("${spexregister.keycloak.client.client-id}") final String keycloakClientClientId,
+    public SecurityConfig(@Value("${fgv-spexregister.keycloak.url}") final String keycloakUrl,
+                          @Value("${fgv-spexregister.keycloak.realm}") final String keycloakRealm,
+                          @Value("${fgv-spexregister.keycloak.admin.client-id}") final String keycloakAdminClientId,
+                          @Value("${fgv-spexregister.keycloak.admin.client-secret}") final String keycloakAdminClientSecret,
+                          @Value("${fgv-spexregister.keycloak.client.client-id}") final String keycloakClientClientId,
                           @Value("${spring.graphql.http.path}") final String graphqlBaseUrl) {
         this.keycloakUrl = keycloakUrl;
         this.keycloakRealm = keycloakRealm;
@@ -98,8 +98,8 @@ public class SecurityConfig {
     public SecurityFilterChain mcpSecurityFilterChain(final HttpSecurity http,
                                                       @Value("${spring.ai.mcp.server.streamable-http.mcp-endpoint}") final String mcpEndpoint,
                                                       @Value("${spring.security.oauth2.resourceserver.jwt.issuer-uri}") final String issuerUri,
-                                                      @Value("${spexregister.mcp.authorized-parties}") final List<String> authorizedParties,
-                                                      @Value("${spexregister.base-url}") final String baseUrl) {
+                                                      @Value("${fgv-spexregister.mcp.authorized-parties}") final List<String> authorizedParties,
+                                                      @Value("${fgv-spexregister.base-url}") final String baseUrl) {
         final String resource = UriComponentsBuilder.fromUriString(baseUrl).replacePath(mcpEndpoint).build().toUriString();
         final JwtDecoder jwtDecoder = new SupplierJwtDecoder(() -> {
             final NimbusJwtDecoder decoder = NimbusJwtDecoder.withIssuerLocation(issuerUri).build();
@@ -153,7 +153,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    public OAuth2TokenValidator<Jwt> authorizedPartyValidator(@Value("${spexregister.security.authorized-parties:${spexregister.keycloak.client.client-id}}") final List<String> authorizedParties) {
+    public OAuth2TokenValidator<Jwt> authorizedPartyValidator(@Value("${fgv-spexregister.security.authorized-parties:${fgv-spexregister.keycloak.client.client-id}}") final List<String> authorizedParties) {
         return new JwtClaimValidator<String>("azp", authorizedParties::contains);
     }
 

@@ -95,7 +95,7 @@ public abstract class AbstractIntegrationTest {
     protected static final String AUTHORITY_EDITOR = "EDITOR";
     protected static final String AUTHORITY_USER = "USER";
     protected static final List<String> AUTHORITIES = List.of(AUTHORITY_ADMIN, AUTHORITY_EDITOR, AUTHORITY_USER);
-    protected static final String TEST_MCP_CLIENT_ID = "spexregister-mcp";
+    protected static final String TEST_MCP_CLIENT_ID = "fgv-spexregister-mcp";
     private static final String TEST_REALM = "fgv";
     private static final String TEST_GRANT_TYPE = "password";
     private static final String TEST_DOMAIN = "@fgv.nu";
@@ -103,8 +103,8 @@ public abstract class AbstractIntegrationTest {
     protected static final String TEST_EDITOR = "editor" + TEST_DOMAIN;
     protected static final String TEST_USER = "user" + TEST_DOMAIN;
     private static final String TEST_PASSWORD = "s3cr3t-s3cr3t";
-    private static final String TEST_CLIENT_ID = "spexregister";
-    private static final String TEST_UNBOUND_MCP_CLIENT_ID = "spexregister-mcp-unbound";
+    private static final String TEST_CLIENT_ID = "fgv-spexregister";
+    private static final String TEST_UNBOUND_MCP_CLIENT_ID = "fgv-spexregister-mcp-unbound";
     @ServiceConnection
     private static final MySQLContainer mysql = new MySQLContainer("mysql:8.4.13")
             .withTmpFs(Map.of("/var/lib/mysql", "rw"))
@@ -136,11 +136,11 @@ public abstract class AbstractIntegrationTest {
     protected final String keycloakClientId;
     protected final ObjectMapper objectMapper;
     protected RestTestClient restTestClient;
-    @Value("${spexregister.keycloak.realm}")
+    @Value("${fgv-spexregister.keycloak.realm}")
     protected String keycloakRealm;
-    @Value("${spexregister.keycloak.client.client-id}")
+    @Value("${fgv-spexregister.keycloak.client.client-id}")
     protected String keycloakClientClientId;
-    @Value("${spexregister.keycloak.client.client-secret}")
+    @Value("${fgv-spexregister.keycloak.client.client-secret}")
     protected String keycloakClientClientSecret;
 
     /*
@@ -180,7 +180,7 @@ public abstract class AbstractIntegrationTest {
         //registry.add("spring.jpa.properties.hibernate.search.backend.password", opensearch::getPassword);
 
         registry.add("spring.security.oauth2.resourceserver.jwt.issuer-uri", () -> keycloak.getAuthServerUrl() + "/realms/" + TEST_REALM);
-        registry.add("spexregister.keycloak.url", keycloak::getAuthServerUrl);
+        registry.add("fgv-spexregister.keycloak.url", keycloak::getAuthServerUrl);
         authorizationURI = new URIBuilder(keycloak.getAuthServerUrl() + String.format("/realms/%s/protocol/openid-connect/token", TEST_REALM)).build();
     }
 

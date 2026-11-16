@@ -34,7 +34,7 @@ import java.time.Duration;
 import static org.springframework.security.oauth2.client.web.client.RequestAttributeClientRegistrationIdResolver.clientRegistrationId;
 
 /**
- * The HTTP client for Spexipedia, with the client credentials of {@code spexregister-service}.
+ * The HTTP client for Spexipedia, with the client credentials of {@code fgv-spexregister-service}.
  *
  * @author Anders Jacobsson
  * @since 2.0
@@ -43,7 +43,7 @@ import static org.springframework.security.oauth2.client.web.client.RequestAttri
 @EnableConfigurationProperties(SyncProperties.class)
 public class SyncConfig {
 
-    public static final String REGISTRATION_ID = "spexregister-service";
+    public static final String REGISTRATION_ID = "fgv-spexregister-service";
     public static final String REST_CLIENT = "spexipediaRestClient";
     private static final Duration TIMEOUT = Duration.ofSeconds(30);
 

@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 /**
  * Spexipedia tells Spexregister that its change feed has something new; the call only starts a pull and carries no
- * data. Requires {@code NOTIFY} on {@code spexregister}.
+ * data. Requires {@code NOTIFY} on {@code fgv-spexregister}.
  *
  * @author Anders Jacobsson
  * @since 2.0
@@ -38,7 +38,7 @@ public class SyncApi {
     }
 
     @PostMapping("/api/sync/notify")
-    @PreAuthorize("hasRole('spexregister_NOTIFY')")
+    @PreAuthorize("hasRole('fgv-spexregister_NOTIFY')")
     public ResponseEntity<Void> notifyChanged() {
         service.pullSoon();
         return ResponseEntity.accepted().build();

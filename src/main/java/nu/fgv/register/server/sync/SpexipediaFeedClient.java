@@ -24,7 +24,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
 /**
- * Spexipedia's change feed, read with {@code spexregister-service}'s token, which holds {@code SYNC} on
+ * Spexipedia's change feed, read with {@code fgv-spexregister-service}'s token, which holds {@code SYNC} on
  * {@code fgv-spexipedia}.
  *
  * @author Anders Jacobsson

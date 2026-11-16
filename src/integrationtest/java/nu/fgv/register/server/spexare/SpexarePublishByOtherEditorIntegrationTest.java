@@ -84,7 +84,7 @@ class SpexarePublishByOtherEditorIntegrationTest extends AbstractGraphqlIntegrat
         final var previous = SecurityContextHolder.getContext().getAuthentication();
 
         SecurityContextHolder.getContext().setAuthentication(
-                new TestingAuthenticationToken("another-editor", "ignored", "ROLE_spexregister_EDITOR"));
+                new TestingAuthenticationToken("another-editor", "ignored", "ROLE_fgv-spexregister_EDITOR"));
         try {
             return service.create(SpexareCreateDto.builder()
                     .firstName("Petra")

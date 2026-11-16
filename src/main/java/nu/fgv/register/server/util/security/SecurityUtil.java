@@ -37,12 +37,12 @@ import java.util.Optional;
  */
 public class SecurityUtil {
 
-    public static final String ROLE_ADMIN = "ROLE_spexregister_ADMIN";
-    public static final String ROLE_EDITOR = "ROLE_spexregister_EDITOR";
-    public static final String ROLE_USER = "ROLE_spexregister_USER";
-    public static final String ROLE_REVIVAL = "ROLE_spexregister_REVIVAL";
-    public static final String ROLE_SPEXIPEDIA = "ROLE_spexregister_SPEXIPEDIA";
-    public static final String ROLE_NOTIFY = "ROLE_spexregister_NOTIFY";
+    public static final String ROLE_ADMIN = "ROLE_fgv-spexregister_ADMIN";
+    public static final String ROLE_EDITOR = "ROLE_fgv-spexregister_EDITOR";
+    public static final String ROLE_USER = "ROLE_fgv-spexregister_USER";
+    public static final String ROLE_REVIVAL = "ROLE_fgv-spexregister_REVIVAL";
+    public static final String ROLE_SPEXIPEDIA = "ROLE_fgv-spexregister_SPEXIPEDIA";
+    public static final String ROLE_NOTIFY = "ROLE_fgv-spexregister_NOTIFY";
     public static final List<String> ROLES = List.of(ROLE_ADMIN, ROLE_EDITOR, ROLE_USER);
 
     private SecurityUtil() {

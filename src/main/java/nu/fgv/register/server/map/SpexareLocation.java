@@ -30,7 +30,7 @@ import java.time.Instant;
 
 /**
  * Where a spexare lives, as geocoded from their preferred address. Not audited: it is derived data, recalculated by the
- * {@code spexregister.jobs.geocode-addresses} job whenever the address it came from changes. A lookup that found nothing
+ * {@code fgv-spexregister.jobs.geocode-addresses} job whenever the address it came from changes. A lookup that found nothing
  * is kept without coordinates, so the same address is not looked up again.
  *
  * @author Anders Jacobsson

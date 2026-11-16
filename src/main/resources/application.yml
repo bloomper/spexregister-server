@@ -49,12 +49,12 @@ spring:
       resourceserver:
         jwt:
           issuer-uri: ${API_KEYCLOAK_URL}/realms/${API_KEYCLOAK_REALM}
-      # spexregister-service reads Spexipedia's change feed (SYNC on fgv-spexipedia)
+      # fgv-spexregister-service reads Spexipedia's change feed (SYNC on fgv-spexipedia)
       client:
         registration:
-          spexregister-service:
+          fgv-spexregister-service:
             provider: fgv
-            client-id: ${API_KEYCLOAK_SERVICE_CLIENT_ID:spexregister-service}
+            client-id: ${API_KEYCLOAK_SERVICE_CLIENT_ID:fgv-spexregister-service}
             client-secret: ${API_KEYCLOAK_SERVICE_CLIENT_SECRET:}
             authorization-grant-type: client_credentials
         provider:
@@ -80,7 +80,7 @@ spring:
   ai:
     mcp:
       server:
-        name: spexregister
+        name: fgv-spexregister
         version: 2.0.0
         type: SYNC
         protocol: STATELESS
@@ -120,7 +120,7 @@ logging:
   file:
     path: ./data/log_data
 
-spexregister:
+fgv-spexregister:
   base-url: ${API_BASE_URL}
   default-language: sv
   languages:
@@ -164,10 +164,12 @@ spexregister:
     enabled: ${API_SPEXIPEDIA_SYNC_ENABLED:true}
     graphql-url: ${API_SPEXIPEDIA_GRAPHQL_URL:https://api.spexipedia.fgv.local.nu:8443/api/graphql}
     web-url: ${SPEXIPEDIA_URL:http://localhost:3006}
+  security:
+    authorized-parties: ${SPEXREGISTER_SECURITY_AUTHORIZED_PARTIES:${fgv-spexregister.keycloak.client.client-id}}
   mcp:
-    authorized-parties: ${API_KEYCLOAK_MCP_CLIENT_ID:spexregister-mcp}
+    authorized-parties: ${API_KEYCLOAK_MCP_CLIENT_ID:fgv-spexregister-mcp}
   impex:
-    storage-path: ./data/impex_data
+    storage-path: ${SPEXREGISTER_IMPEX_STORAGE_PATH:./data/impex_data}
   mail:
     from: ${MAIL_FROM:noreply@localhost}
     admin-recipients: ${ADMIN_NOTIFICATION_RECIPIENTS:}

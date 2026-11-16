@@ -40,7 +40,7 @@ import static org.springframework.util.StringUtils.hasText;
 
 /**
  * Lets a user ask to be removed from the register, by mail to the administrators named in
- * {@code spexregister.mail.admin-recipients}.
+ * {@code fgv-spexregister.mail.admin-recipients}.
  *
  * @author Anders Jacobsson
  * @since 2.0
@@ -61,9 +61,9 @@ public class SpexareRemovalRequestService {
     public SpexareRemovalRequestService(final SpexareService spexareService,
                                         final ObjectProvider<JavaMailSender> mailSender,
                                         final MessageSource messageSource,
-                                        @Value("${spexregister.mail.from}") final String from,
-                                        @Value("${spexregister.mail.admin-recipients}") final List<String> recipients,
-                                        @Value("${spexregister.default-language}") final String language) {
+                                        @Value("${fgv-spexregister.mail.from}") final String from,
+                                        @Value("${fgv-spexregister.mail.admin-recipients}") final List<String> recipients,
+                                        @Value("${fgv-spexregister.default-language}") final String language) {
         this.spexareService = spexareService;
         this.mailSender = mailSender;
         this.messageSource = messageSource;

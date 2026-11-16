@@ -23,8 +23,8 @@ services:
     #ports:
     #  - "3306:3306"
     volumes:
-      - spexregister_mysql_data:/var/lib/mysql
-      - spexregister_mysql_log:/var/log/mysql
+      - fgv_spexregister_mysql_data:/var/lib/mysql
+      - fgv_spexregister_mysql_log:/var/log/mysql
     secrets:
       - SPEXREGISTER_MYSQL_ROOT_PASSWORD
       - SPEXREGISTER_MYSQL_USER_PASSWORD
@@ -53,7 +53,7 @@ services:
       ADMIN_NOTIFICATION_RECIPIENTS: admin@fgv.local.nu
       SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://keycloak-server:8080/auth/realms/fgv/protocol/openid-connect/certs
       SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: https://auth.fgv.local.nu:8443/auth/realms/fgv
-      SPEXREGISTER_SECURITY_AUTHORIZED_PARTIES: spexregister,fgv-revival-service,fgv-spexify-service,fgv-spexflix-service,fgv-spexgram-service,fgv-archive-service,fgv-spexipedia-service
+      SPEXREGISTER_SECURITY_AUTHORIZED_PARTIES: fgv-spexregister,fgv-revival-service,fgv-spexify-service,fgv-spexflix-service,fgv-spexgram-service,fgv-archive-service,fgv-spexipedia-service
     restart: unless-stopped
     healthcheck:
       test: [ "CMD", "bash", "-c", "exec 3<>/dev/tcp/127.0.0.1/9000;printf \"GET /actuator/health HTTP/1.1\r\nhost: api.register.fgv.local.nu\r\nConnection: close\r\n\r\n\" >&3;grep -q \"^HTTP/1.1 200\" <&3" ]
@@ -64,9 +64,9 @@ services:
       spexregister-mysql:
         condition: service_healthy
     volumes:
-      - spexregister_api_log:/data/log_data
-      - spexregister_api_index:/data/index_data
-      - spexregister_api_impex:/data/impex_data
+      - fgv_spexregister_api_log:/data/log_data
+      - fgv_spexregister_api_index:/data/index_data
+      - fgv_spexregister_api_impex:/data/impex_data
     networks:
       - default
       - fgv
@@ -78,35 +78,35 @@ services:
       - API_SECRET_KEY
 
 volumes:
-  spexregister_mysql_data:
+  fgv_spexregister_mysql_data:
     driver: local
     driver_opts:
       type: none
-      device: .docker/spexregister-mysql/data
+      device: .docker/fgv-spexregister-mysql/data
       o: bind
-  spexregister_mysql_log:
+  fgv_spexregister_mysql_log:
     driver: local
     driver_opts:
       type: none
-      device: .docker/spexregister-mysql/log
+      device: .docker/fgv-spexregister-mysql/log
       o: bind
-  spexregister_api_log:
+  fgv_spexregister_api_log:
     driver: local
     driver_opts:
       type: none
-      device: .docker/spexregister-api/log_data
+      device: .docker/fgv-spexregister-api/log_data
       o: bind
-  spexregister_api_index:
+  fgv_spexregister_api_index:
     driver: local
     driver_opts:
       type: none
-      device: .docker/spexregister-api/index_data
+      device: .docker/fgv-spexregister-api/index_data
       o: bind
-  spexregister_api_impex:
+  fgv_spexregister_api_impex:
     driver: local
     driver_opts:
       type: none
-      device: .docker/spexregister-api/impex_data
+      device: .docker/fgv-spexregister-api/impex_data
       o: bind
 
 networks:

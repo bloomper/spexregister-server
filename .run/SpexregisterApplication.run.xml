@@ -36,7 +36,7 @@
             <param>
                 <option name="enabled" value="true"/>
                 <option name="name" value="API_KEYCLOAK_CLIENT_CLIENT_ID"/>
-                <option name="value" value="spexregister"/>
+                <option name="value" value="fgv-spexregister"/>
             </param>
             <param>
                 <option name="enabled" value="true"/>

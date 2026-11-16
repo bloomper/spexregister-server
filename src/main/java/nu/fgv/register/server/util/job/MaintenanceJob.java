@@ -24,11 +24,11 @@ package nu.fgv.register.server.util.job;
  */
 public enum MaintenanceJob {
 
-    SEARCH_INDEX("spexregister.jobs.full-index.cron-expression"),
-    USER_SYNC("spexregister.jobs.sync-users.cron-expression"),
-    NEWS_PUBLISHING("spexregister.jobs.publish-unpublish-news.cron-expression"),
-    JOB_CLEANUP("spexregister.jobs.job-cleanup.cron-expression"),
-    ADDRESS_GEOCODING("spexregister.jobs.geocode-addresses.cron-expression");
+    SEARCH_INDEX("fgv-spexregister.jobs.full-index.cron-expression"),
+    USER_SYNC("fgv-spexregister.jobs.sync-users.cron-expression"),
+    NEWS_PUBLISHING("fgv-spexregister.jobs.publish-unpublish-news.cron-expression"),
+    JOB_CLEANUP("fgv-spexregister.jobs.job-cleanup.cron-expression"),
+    ADDRESS_GEOCODING("fgv-spexregister.jobs.geocode-addresses.cron-expression");
 
     private final String cronProperty;
 

@@ -93,9 +93,9 @@ public class IndexingService {
 
 
     /**
-     * Rebuilds the spexare index on the {@code spexregister.jobs.full-index.cron-expression} schedule.
+     * Rebuilds the spexare index on the {@code fgv-spexregister.jobs.full-index.cron-expression} schedule.
      */
-    @Scheduled(cron = "${spexregister.jobs.full-index.cron-expression}")
+    @Scheduled(cron = "${fgv-spexregister.jobs.full-index.cron-expression}")
     @Transactional
     public void scheduledRun() {
         log.info("Starting search full re-indexing job");

@@ -45,8 +45,8 @@ import static nu.fgv.register.server.util.security.SecurityUtil.runAsSystem;
  * Keeps the locations of spexare in step with their addresses. Each spexare is placed at one address, the home address
  * when there is one, then another, then the work address; deceased spexare and addresses without a postal code or city
  * are left out. A run looks up only the spexare whose chosen address changed since it was last looked up, at most
- * {@code spexregister.geocoding.batch-size} of them, one lookup per {@code spexregister.geocoding.delay}. Runs on the
- * {@code spexregister.jobs.geocode-addresses.cron-expression} schedule when {@code spexregister.geocoding.enabled}.
+ * {@code fgv-spexregister.geocoding.batch-size} of them, one lookup per {@code fgv-spexregister.geocoding.delay}. Runs on the
+ * {@code fgv-spexregister.jobs.geocode-addresses.cron-expression} schedule when {@code fgv-spexregister.geocoding.enabled}.
  *
  * @author Anders Jacobsson
  * @since 2.0
@@ -69,9 +69,9 @@ public class GeocodingService {
                             final Geocoder geocoder,
                             final MaintenanceJobTracker tracker,
                             final PlatformTransactionManager transactionManager,
-                            @Value("${spexregister.geocoding.enabled:false}") final boolean enabled,
-                            @Value("${spexregister.geocoding.batch-size:300}") final int batchSize,
-                            @Value("${spexregister.geocoding.delay:PT1.1S}") final Duration delay) {
+                            @Value("${fgv-spexregister.geocoding.enabled:false}") final boolean enabled,
+                            @Value("${fgv-spexregister.geocoding.batch-size:300}") final int batchSize,
+                            @Value("${fgv-spexregister.geocoding.delay:PT1.1S}") final Duration delay) {
         this.repository = repository;
         this.entityManager = entityManager;
         this.geocoder = geocoder;
@@ -83,9 +83,9 @@ public class GeocodingService {
     }
 
     /**
-     * Geocodes the changed addresses on the {@code spexregister.jobs.geocode-addresses.cron-expression} schedule.
+     * Geocodes the changed addresses on the {@code fgv-spexregister.jobs.geocode-addresses.cron-expression} schedule.
      */
-    @Scheduled(cron = "${spexregister.jobs.geocode-addresses.cron-expression}")
+    @Scheduled(cron = "${fgv-spexregister.jobs.geocode-addresses.cron-expression}")
     public void scheduledRun() {
         runAsSystem(() -> tracker.run(MaintenanceJob.ADDRESS_GEOCODING, this::geocode));
     }

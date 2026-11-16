@@ -113,7 +113,7 @@ public class SyncService {
         this.clock = Clock.systemUTC();
     }
 
-    @Scheduled(cron = "${spexregister.jobs.sync-spexipedia.cron-expression}")
+    @Scheduled(cron = "${fgv-spexregister.jobs.sync-spexipedia.cron-expression}")
     void scheduled() {
         if (properties.enabled()) {
             pull(false);

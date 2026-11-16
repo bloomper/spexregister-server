@@ -103,7 +103,7 @@ There are also configuration parameters in ``.env`` that can be tweaked if so de
 |===
 
 Access tokens are only accepted from the Keycloak clients listed in ``SPEXREGISTER_SECURITY_AUTHORIZED_PARTIES``, which defaults to ``API_KEYCLOAK_CLIENT_CLIENT_ID``.
-For the service accounts of Nyuppsättning, Spexify, Spexflix, Spexgram and Spexarkiv to be let in, the list must include ``fgv-revival-service``, ``fgv-spexify-service``, ``fgv-spexflix-service``, ``fgv-spexgram-service`` and ``fgv-archive-service``; ``docker-compose.yaml`` sets it to ``spexregister,fgv-revival-service,fgv-spexify-service,fgv-spexflix-service,fgv-spexgram-service,fgv-archive-service``.
+For the service accounts of Nyuppsättning, Spexify, Spexflix, Spexgram and Spexarkiv to be let in, the list must include ``fgv-revival-service``, ``fgv-spexify-service``, ``fgv-spexflix-service``, ``fgv-spexgram-service`` and ``fgv-archive-service``; ``docker-compose.yaml`` sets it to ``fgv-spexregister,fgv-revival-service,fgv-spexify-service,fgv-spexflix-service,fgv-spexgram-service,fgv-archive-service``.
 
 Add the following to `/etc/hosts` (or the Windows equivalent):
 
@@ -267,7 +267,7 @@ Enter values as follows (leave other fields empty).
 |Callback URL|https://oauth.pstmn.io/v1/browser-callback|
 |Auth URL|https://auth.fgv.local.nu:8443/auth/realms/fgv/protocol/openid-connect/auth|If ``API_KEYCLOAK_REALM`` in ``.env`` has been changed, the value must be changed accordingly
 |Access Token URL|https://auth.fgv.local.nu:8443/auth/realms/fgv/protocol/openid-connect/token|If ``API_KEYCLOAK_REALM`` in ``.env`` has been changed, the value must be changed accordingly
-|Client ID|spexregister|If ``API_KEYCLOAK_CLIENT_CLIENT_ID`` in ``.env`` has been changed, the value must be changed accordingly
+|Client ID|fgv-spexregister|If ``API_KEYCLOAK_CLIENT_CLIENT_ID`` in ``.env`` has been changed, the value must be changed accordingly
 |Client Secret|ip8dFYgp03sVytrrEeXgwHIgHAMtE350|If the secret of the client has been changed in Keycloak, the value must be changed accordingly
 |Scope|offline_access|
 |Client Authentication|Send as Basic Auth header|
@@ -285,14 +285,14 @@ Spexare and individual users are intentionally not exposed; the only user-relate
 
 Every tool call runs with the permissions of the signed-in user, and changes are recorded in the audit history with source ``MCP``.
 
-Authentication uses OAuth 2.0 against Keycloak with the public client ``spexregister-mcp`` (authorization code with PKCE, redirect URIs ``http://localhost:*`` and ``http://127.0.0.1:*``).
+Authentication uses OAuth 2.0 against Keycloak with the public client ``fgv-spexregister-mcp`` (authorization code with PKCE, redirect URIs ``http://localhost:*`` and ``http://127.0.0.1:*``).
 Only tokens issued to that client are accepted by the MCP endpoint, and they are not accepted by the rest of the API.
 The tokens must also have the MCP endpoint's address, i.e. ``API_BASE_URL`` with the path ``/api/mcp``, as audience.
 Keycloak adds it through the client's audience mapper, which ``fgv.json`` sets from ``SPEXREGISTER_MCP_URL``.
 Users confirm the access once, on Keycloak's consent page.
 MCP clients discover Keycloak through the protected resource metadata at
 ``/.well-known/oauth-protected-resource/api/mcp``.
-Keycloak does not allow dynamic client registration by default, so configure the MCP client with the client id ``spexregister-mcp``.
+Keycloak does not allow dynamic client registration by default, so configure the MCP client with the client id ``fgv-spexregister-mcp``.
 
 Locally, the MCP server is available at ``https://api.register.fgv.local.nu:8443/api/mcp``.
 It can for instance be explored with the MCP Inspector (https://github.com/modelcontextprotocol/inspector).

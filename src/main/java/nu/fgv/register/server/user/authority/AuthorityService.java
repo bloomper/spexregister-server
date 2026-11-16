@@ -47,7 +47,7 @@ public class AuthorityService {
     private final AuthorityRepository repository;
     private final Keycloak keycloakAdminClient;
     private final String keycloakClientId;
-    @Value("${spexregister.keycloak.realm}")
+    @Value("${fgv-spexregister.keycloak.realm}")
     private String keycloakRealm;
 
     /**

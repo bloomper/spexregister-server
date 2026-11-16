@@ -43,7 +43,7 @@ import java.util.UUID;
  * @since 2.0
  */
 @Controller
-@PreAuthorize("hasRole('spexregister_SPEXIPEDIA')")
+@PreAuthorize("hasRole('fgv-spexregister_SPEXIPEDIA')")
 public class SpexipediaGraphqlApi {
 
     static final int MAX_IDS = 2_000;
