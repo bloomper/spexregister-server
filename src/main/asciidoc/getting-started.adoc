@@ -149,11 +149,12 @@ Sample data consists both of real data and random data but none of the data can 
 [sidebar]
 .NOTE
 --
-Any existing data and all users in Keycloak will be wiped out, at every start.
+Any existing data is wiped out at every start. Keycloak is never changed.
 --
 
-The import also creates the users listed under <<test_credentials>> in Keycloak, together with a number of random users.
-The realm itself contains no users, so without sample data the first user has to register and be given roles in Keycloak's admin console.
+The Keycloak accounts are fgv-infra-deploy's sample users (``bin/seed-users.sh``, ``sample-users.tsv``), with fixed ids and their roles in every application.
+The import links the sample members ``member01@fgv.nu`` to ``member50@fgv.nu`` (the last five inactive) to random spexare; the users listed under <<test_credentials>> become users through the user sync, as real ones do.
+The realm itself contains no users, so without the sample users the first user has to register and be given roles in Keycloak's admin console.
 
 [[keycloak]]
 == Keycloak
@@ -236,7 +237,7 @@ $ ./gradlew build              # all of the above, plus this documentation
 [[test_credentials]]
 == Test credentials
 
-The following test users are created when sample data is imported (see <<sample_data>>), with the password in ``SAMPLE_USER_PASSWORD`` (``s3cr3t-s3cr3t`` in the ``local`` profile; every other environment must set it):
+The following test users come from fgv-infra-deploy's ``bin/seed-users.sh`` (see <<sample_data>>), with the password ``s3cr3t-s3cr3t`` locally (its ``secrets/SAMPLE_USER_PASSWORD`` on staging):
 
 |===
 

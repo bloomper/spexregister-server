@@ -16,7 +16,6 @@
 
 package nu.fgv.register.server.util.data;
 
-import jakarta.ws.rs.core.Response;
 import lombok.extern.slf4j.Slf4j;
 import net.datafaker.Faker;
 import net.datafaker.providers.base.IdNumber;
@@ -27,17 +26,9 @@ import nu.fgv.register.server.security.policy.PermissionService;
 import nu.fgv.register.server.settings.Type;
 import nu.fgv.register.server.spex.category.SpexCategory;
 import nu.fgv.register.server.task.category.TaskCategory;
-import nu.fgv.register.server.user.authority.AuthorityService;
 import nu.fgv.register.server.util.security.CryptoConverter;
 import org.apache.commons.lang3.tuple.Pair;
-import org.keycloak.admin.client.Keycloak;
-import org.keycloak.admin.client.resource.UserResource;
-import org.keycloak.representations.idm.CredentialRepresentation;
-import org.keycloak.representations.idm.RoleRepresentation;
-import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import nu.fgv.register.server.spexare.activity.task.actor.ActorCharacterService;
 import nu.fgv.register.server.sync.SyncService;
@@ -49,14 +40,12 @@ import org.springframework.core.annotation.Order;
 import javax.sql.DataSource;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.springframework.jdbc.datasource.SingleConnectionDataSource;
-import org.springframework.jdbc.datasource.init.ScriptUtils;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.security.authentication.TestingAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -89,7 +78,8 @@ import java.util.stream.IntStream;
 
 
 /**
- * Generates sample news, tags, spexare with their records and partners, and users, also in Keycloak.
+ * Generates sample news, tags, spexare with their records and partners, and users. The Keycloak accounts are
+ * fgv-infra-deploy's sample users (bin/seed-users.sh); this import never changes Keycloak.
  *
  * @author Anders Jacobsson
  * @since 2.0
@@ -104,7 +94,9 @@ public class SampleDataImporter {
     private static final int NUMBER_OF_SAMPLES_SPEXARE_MAX_MEMBERSHIPS_OF_EACH_TYPE = 3;
     private static final int NUMBER_OF_SAMPLES_SPEXARE_MAX_ACTIVITIES = 5;
     private static final int NUMBER_OF_SAMPLES_SPEXARE_MAX_TASK_ACTIVITIES_PER_ACTIVITY = 3;
+    // fgv-infra-deploy's sample members (sample-users.tsv): member01 to member50, the last five disabled
     private static final int NUMBER_OF_SAMPLES_USERS = 50;
+    private static final int NUMBER_OF_SAMPLES_INACTIVE_USERS = 5;
     private static final int SPEXARE_MIN_AGE = 18;
     private static final int SPEXARE_MAX_AGE = 105;
     private static final String SYSTEM_USER = "system";
@@ -130,11 +122,7 @@ public class SampleDataImporter {
     private static final int SPEXIPEDIA_ATTEMPTS = 60;
     private static final Duration SPEXIPEDIA_RETRY_INTERVAL = Duration.ofSeconds(10);
     private final PermissionService permissionService;
-    private final AuthorityService authorityService;
     private final AuditDataSeeder auditDataSeeder;
-    private final String sampleUserPassword;
-    private final Keycloak keycloakAdminClient;
-    private final String keycloakClientId;
     private final Random rnd = new SecureRandom();
     private final AtomicInteger failedImageDownloads = new AtomicInteger();
     private final Faker faker = new Faker(Locale.of("sv", "SE"));
@@ -146,25 +134,15 @@ public class SampleDataImporter {
     private final AtomicBoolean pending = new AtomicBoolean();
     // Spex key to the names of its characters, and its parent's for a revival, for sample actors' roles
     private Map<Long, List<String>> characterNames = Map.of();
-    @Value("${spexregister.keycloak.realm}")
-    private String keycloakRealm;
 
     public SampleDataImporter(final PermissionService permissionService,
-                              final AuthorityService authorityService,
                               final AuditDataSeeder auditDataSeeder,
-                              final Keycloak keycloakAdminClient,
-                              final String keycloakClientId,
-                              @Value("${spexregister.data.sample-user-password}") final String sampleUserPassword,
                               @Value("${spexregister.crypto.secret-key}") final String secretKey,
                               final ObjectProvider<SyncService> syncService,
                               final ObjectProvider<ActorCharacterService> actorCharacterService,
                               final ObjectProvider<DataSource> dataSource) {
         this.permissionService = permissionService;
-        this.authorityService = authorityService;
         this.auditDataSeeder = auditDataSeeder;
-        this.keycloakAdminClient = keycloakAdminClient;
-        this.keycloakClientId = keycloakClientId;
-        this.sampleUserPassword = sampleUserPassword;
         cryptoConverter = new CryptoConverter(secretKey);
         this.syncService = syncService;
         this.actorCharacterService = actorCharacterService;
@@ -191,7 +169,6 @@ public class SampleDataImporter {
 
         log.info("Importing sample data");
         timed("Emptied the tables", () -> purgeAllRelevantTables(jdbcClient));
-        timed("Deleted the users in Keycloak", this::purgeKeycloak);
         SecurityContextHolder.getContext().setAuthentication(AUTH);
         timed("Created the news", () -> createSampleNews(jdbcClient));
         timed("Created the tags", () -> createSampleTags(jdbcClient));
@@ -227,10 +204,7 @@ public class SampleDataImporter {
                 log.warn("{} sample spexare images could not be downloaded and were generated instead", failedImageDownloads.get());
             }
 
-            final List<String> users = NotificationSuspender.whileSuspended(keycloakAdminClient.realm(keycloakRealm), () -> {
-                timed("Created the fixed users in Keycloak", this::createFixedSampleUsers);
-                return timedResult("Created the random users in Keycloak", () -> createSampleUsers(jdbcClient));
-            });
+            final List<String> users = timedResult("Linked the sample members to spexare", () -> createSampleUsers(jdbcClient));
 
             timed("Seeded the sample history", () -> auditDataSeeder.seedSampleHistory(jdbcClient, users));
             timed("Linked actors to characters", () -> actorCharacterService.getObject().linkByRole());
@@ -429,25 +403,6 @@ public class SampleDataImporter {
         );
         // The copy of base data is pulled again from the start of Spexipedia's feed
         jdbcClient.sql("UPDATE sync_source SET cursor_value = NULL, applied = 0, last_error = NULL").update();
-    }
-
-    private void purgeKeycloak() {
-        final List<UserRepresentation> users = keycloakAdminClient
-                .realm(keycloakRealm)
-                .users()
-                .list();
-
-        log.info("Deleting {} users in Keycloak", users.size());
-        users.forEach(representation -> {
-            try (final Response response = keycloakAdminClient
-                    .realm(keycloakRealm)
-                    .users()
-                    .delete(representation.getId())) {
-                if (response.getStatus() != HttpStatus.NO_CONTENT.value()) {
-                    throw new IllegalStateException("Unable to delete user " + representation.getEmail());
-                }
-            }
-        });
     }
 
     private void createSampleNews(final JdbcClient jdbcClient) {
@@ -880,141 +835,35 @@ public class SampleDataImporter {
         });
     }
 
-    private void createFixedSampleUsers() {
-        createFixedSampleUser("admin", List.of("USER", "EDITOR", "ADMIN"));
-        createFixedSampleUser("editor", List.of("USER", "EDITOR"));
-        createFixedSampleUser("user", List.of("USER"));
-    }
-
-    private void createFixedSampleUser(final String name, final List<String> authorityIds) {
-        final UserRepresentation userRepresentation = new UserRepresentation();
-
-        userRepresentation.setEmail(name + SAMPLE_USER_DOMAIN);
-        userRepresentation.setFirstName(StringUtils.capitalize(name));
-        userRepresentation.setEnabled(true);
-        userRepresentation.setEmailVerified(true);
-        userRepresentation.setCredentials(List.of(sampleUserCredential()));
-
-        try (final Response response = keycloakAdminClient
-                .realm(keycloakRealm)
-                .users()
-                .create(userRepresentation)
-        ) {
-            if (response.getStatus() != HttpStatus.CREATED.value()) {
-                throw new IllegalStateException("Could not create user " + userRepresentation.getEmail() + " in Keycloak");
-            }
-
-            final String locationPath = response.getLocation().getPath();
-
-            keycloakAdminClient
-                    .realm(keycloakRealm)
-                    .users()
-                    .get(locationPath.substring(locationPath.lastIndexOf('/') + 1))
-                    .roles()
-                    .clientLevel(keycloakClientId)
-                    .add(authorityIds.stream().map(authorityService::getRoleRepresentationById).toList());
-        }
-    }
-
-    private CredentialRepresentation sampleUserCredential() {
-        final CredentialRepresentation credentialRepresentation = new CredentialRepresentation();
-
-        credentialRepresentation.setType(CredentialRepresentation.PASSWORD);
-        if (!StringUtils.hasText(sampleUserPassword)) {
-            throw new IllegalStateException("SAMPLE_USER_PASSWORD must be set to import sample data");
-        }
-        credentialRepresentation.setValue(sampleUserPassword);
-        credentialRepresentation.setTemporary(false);
-
-        return credentialRepresentation;
-    }
-
+    /**
+     * Spexregister's users for fgv-infra-deploy's sample members (bin/seed-users.sh, sample-users.tsv), which have their
+     * Keycloak accounts, roles and enabled flags there: {@code member01@fgv.nu} to {@code member50@fgv.nu}, with fixed
+     * ids, the last five inactive. Each is linked to a random spexare; Keycloak is never asked. The other sample users
+     * ({@code admin@fgv.nu} and so on) become users through the user sync, as real ones do.
+     *
+     * @return the members' email addresses
+     */
     private List<String> createSampleUsers(final JdbcClient jdbcClient) {
-        final List<RoleRepresentation> authorities = new ArrayList<>();
-
-        jdbcClient.sql("SELECT id FROM authority")
-                .query()
-                .listOfRows()
-                .forEach(row -> authorities.add(authorityService.getRoleRepresentationById((String) Objects.requireNonNull(row.get("id")))));
-
-        final List<Pair<String, Boolean>> states = new ArrayList<>();
-
-        jdbcClient.sql("SELECT id, enabled FROM state")
-                .query()
-                .listOfRows()
-                .forEach(row -> states.add(Pair.of((String) row.get("id"), (Boolean) row.get("enabled"))));
-
-        final List<Long> spexare = new ArrayList<>();
-
-        jdbcClient.sql("SELECT id FROM spexare")
-                .query()
-                .listOfRows()
-                .forEach(row -> spexare.add((Long) Objects.requireNonNull(row.get("id"))));
-
+        final List<Long> spexare = jdbcClient.sql("SELECT id FROM spexare").query(Long.class).list();
+        final List<Long> alreadyPickedSpexareIds = new ArrayList<>();
+        final List<String> emailAddresses = new ArrayList<>();
         final String sql = """
                 INSERT INTO user
                     (uuid, external_id, state_id, spexare_id, created_by, created_at, version)
                 VALUES
                     (UUID(), :externalId, :stateId, :spexareId, :createdBy, :createdAt, 0)
                 """;
-        final CredentialRepresentation credentialRepresentation = sampleUserCredential();
-        final List<Long> alreadyPickedSpexareIds = new ArrayList<>();
-        final List<String> emailAddresses = new ArrayList<>();
 
-        IntStream.range(0, NUMBER_OF_SAMPLES_USERS).forEach(i -> {
-            final UserRepresentation userRepresentation = new UserRepresentation();
-            final Pair<String, Boolean> state = states.get(rnd.nextInt(states.size()));
-
-            userRepresentation.setEmail(faker.internet().emailAddress());
-            userRepresentation.setEnabled(state.getRight());
-            userRepresentation.setCredentials(List.of(credentialRepresentation));
-
-            try (final Response response = keycloakAdminClient
-                    .realm(keycloakRealm)
-                    .users()
-                    .create(userRepresentation)
-            ) {
-                if (response.getStatus() == HttpStatus.CREATED.value()) {
-                    final String locationPath = response.getLocation().getPath();
-                    final String externalId = locationPath.substring(locationPath.lastIndexOf('/') + 1);
-
-                    try {
-                        final UserResource userResource = keycloakAdminClient
-                                .realm(keycloakRealm)
-                                .users()
-                                .get(externalId);
-
-                        final RoleRepresentation authority = authorities.get(rnd.nextInt(authorities.size()));
-
-                        userResource
-                                .roles()
-                                .clientLevel(keycloakClientId)
-                                .add(List.of(authority));
-
-                        final KeyHolder keyHolder = new GeneratedKeyHolder();
-                        final long spexareId = getRandomSpexareId(spexare, alreadyPickedSpexareIds);
-
-                        jdbcClient
-                                .sql(sql)
-                                .param("externalId", externalId)
-                                .param("stateId", state.getLeft())
-                                .param("spexareId", spexareId)
-                                .param("createdBy", SYSTEM_USER)
-                                .param("createdAt", randomizeCreatedAt())
-                                .update(keyHolder);
-
-                        if (keyHolder.getKey() != null) {
-                            final long id = keyHolder.getKey().longValue();
-
-                            emailAddresses.add(userRepresentation.getEmail());
-                        }
-                    } catch (final Exception e) {
-                        throw new IllegalStateException("Could not retrieve newly created user in Keycloak", e);
-                    }
-                } else {
-                    throw new IllegalStateException("Could not create user in Keycloak");
-                }
-            }
+        IntStream.rangeClosed(1, NUMBER_OF_SAMPLES_USERS).forEach(i -> {
+            jdbcClient
+                    .sql(sql)
+                    .param("externalId", "00000000-0000-4000-8000-%012d".formatted(1000 + i))
+                    .param("stateId", i > NUMBER_OF_SAMPLES_USERS - NUMBER_OF_SAMPLES_INACTIVE_USERS ? "INACTIVE" : "ACTIVE")
+                    .param("spexareId", getRandomSpexareId(spexare, alreadyPickedSpexareIds))
+                    .param("createdBy", SYSTEM_USER)
+                    .param("createdAt", randomizeCreatedAt())
+                    .update();
+            emailAddresses.add("member%02d%s".formatted(i, SAMPLE_USER_DOMAIN));
         });
 
         return List.copyOf(emailAddresses);

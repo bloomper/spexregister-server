@@ -174,8 +174,6 @@ spexregister:
   data:
     seed-audit-data: ${API_SEED_AUDIT_DATA}
     import-sample-data: ${API_IMPORT_SAMPLE_DATA}
-    # Needed only to import sample data; the local profile has a development value
-    sample-user-password: ${SAMPLE_USER_PASSWORD:}
 
 ---
 spring:
@@ -186,8 +184,3 @@ spring:
     schema:
       introspection:
         enabled: true
-
-spexregister:
-  data:
-    # For development only; every other environment sets SAMPLE_USER_PASSWORD
-    sample-user-password: ${SAMPLE_USER_PASSWORD:s3cr3t-s3cr3t}
