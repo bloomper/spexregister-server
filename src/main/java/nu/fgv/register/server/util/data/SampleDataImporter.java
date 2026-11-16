@@ -454,6 +454,10 @@ public class SampleDataImporter {
         final Pair<Map<Long, List<Long>>, Map<Long, List<Long>>> spexAndRevivalsPerSpexCategory = getSpexPerSpexCategory(jdbcClient, spexCategories);
         final Map<Long, List<Long>> spexPerSpexCategory = spexAndRevivalsPerSpexCategory.getLeft();
         final Map<Long, List<Long>> revivalsPerSpexCategory = spexAndRevivalsPerSpexCategory.getRight();
+        // Spexipedia may have categories without spex, which activities can't refer to
+        final List<SpexCategory> spexCategoriesWithSpex = spexCategories.stream()
+                .filter(spexCategory -> spexPerSpexCategory.containsKey(spexCategory.getId()))
+                .toList();
         final List<Type> vocals = getVocals(jdbcClient);
         final String sql = """
                 INSERT INTO spexare
@@ -501,7 +505,7 @@ public class SampleDataImporter {
                 createSpexareMemberships(jdbcClient, spexareId);
                 createSpexareToggles(jdbcClient, spexareId);
                 createSpexareTaggings(jdbcClient, spexareId);
-                createSpexareActivities(jdbcClient, spexareId, taskCategories, tasksPerTaskCategory, spexCategories, spexPerSpexCategory, revivalsPerSpexCategory, vocals);
+                createSpexareActivities(jdbcClient, spexareId, taskCategories, tasksPerTaskCategory, spexCategoriesWithSpex, spexPerSpexCategory, revivalsPerSpexCategory, vocals);
                 spexareIds.add(spexareId);
             }
         });
@@ -847,11 +851,14 @@ public class SampleDataImporter {
         final List<Long> spexare = jdbcClient.sql("SELECT id FROM spexare").query(Long.class).list();
         final List<Long> alreadyPickedSpexareIds = new ArrayList<>();
         final List<String> emailAddresses = new ArrayList<>();
+        // The user sync may already have made the members users while the spexare were being created
         final String sql = """
                 INSERT INTO user
                     (uuid, external_id, state_id, spexare_id, created_by, created_at, version)
                 VALUES
-                    (UUID(), :externalId, :stateId, :spexareId, :createdBy, :createdAt, 0)
+                    (UUID(), :externalId, :stateId, :spexareId, :createdBy, :createdAt, 0) AS new
+                ON DUPLICATE KEY UPDATE
+                    state_id = new.state_id, spexare_id = new.spexare_id
                 """;
 
         IntStream.rangeClosed(1, NUMBER_OF_SAMPLES_USERS).forEach(i -> {
