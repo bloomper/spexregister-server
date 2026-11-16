@@ -229,9 +229,9 @@ public class NewsService {
 
     /**
      * Publishes the news whose visibility period has started and unpublishes the news whose period has ended, on the
-     * {@code fgv-spexregister.jobs.publish-unpublish-news.cron-expression} schedule.
+     * {@code spexregister.jobs.publish-unpublish-news.cron-expression} schedule.
      */
-    @Scheduled(cron = "${fgv-spexregister.jobs.publish-unpublish-news.cron-expression}")
+    @Scheduled(cron = "${spexregister.jobs.publish-unpublish-news.cron-expression}")
     public void publishAndUnpublishNews() {
         runAsSystem(() -> tracker.run(MaintenanceJob.NEWS_PUBLISHING, () -> {
             log.info("Starting scheduled news publish/unpublish job");

@@ -16,7 +16,7 @@
 
 /**
  * Sample data for development and test: generated spexare, users and history, imported after migration when
- * {@code fgv-spexregister.data.import-sample-data} or {@code fgv-spexregister.data.seed-audit-data} is set.
+ * {@code spexregister.data.import-sample-data} or {@code spexregister.data.seed-audit-data} is set.
  */
 @org.jspecify.annotations.NullMarked
 package nu.fgv.register.server.util.data;

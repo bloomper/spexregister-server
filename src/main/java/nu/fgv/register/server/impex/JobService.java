@@ -94,9 +94,9 @@ public class JobService {
     private final ObjectMapper objectMapper;
     private final JobProgressService progressService;
     private final MaintenanceJobTracker tracker;
-    @Value("${fgv-spexregister.jobs.job-cleanup.purge-threshold-in-days}")
+    @Value("${spexregister.jobs.job-cleanup.purge-threshold-in-days}")
     private int purgeThresholdInDays;
-    @Value("${fgv-spexregister.impex.storage-path}")
+    @Value("${spexregister.impex.storage-path}")
     private String storagePath;
 
     private static @Nullable String contextString(final JobExecution execution, final String key) {
@@ -407,10 +407,10 @@ public class JobService {
 
     /**
      * Removes the jobs and the import and export files older than
-     * {@code fgv-spexregister.jobs.job-cleanup.purge-threshold-in-days}, on the
-     * {@code fgv-spexregister.jobs.job-cleanup.cron-expression} schedule.
+     * {@code spexregister.jobs.job-cleanup.purge-threshold-in-days}, on the
+     * {@code spexregister.jobs.job-cleanup.cron-expression} schedule.
      */
-    @Scheduled(cron = "${fgv-spexregister.jobs.job-cleanup.cron-expression}")
+    @Scheduled(cron = "${spexregister.jobs.job-cleanup.cron-expression}")
     public void scheduledCleanup() {
         tracker.run(MaintenanceJob.JOB_CLEANUP, () -> {
             log.info("Starting job metadata and files cleanup job");

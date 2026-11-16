@@ -24,7 +24,7 @@ logging:
 #    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
 #    org.hibernate.orm.jdbc.bind: TRACE
 
-fgv-spexregister:
+spexregister:
   base-url: http://localhost:8080/api
   jobs:
     full-index:
@@ -60,7 +60,7 @@ fgv-spexregister:
 
 # Base data comes from Spexipedia: tests make it through the sync's own apply step (BaseDataFixtures), and the sync
 # tests stub the feed; no scheduled pulls
-fgv-spexregister.spexipedia:
+spexregister.spexipedia:
   enabled: false
   graphql-url: http://localhost:1/api/graphql
   web-url: https://spexipedia.test

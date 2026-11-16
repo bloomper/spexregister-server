@@ -120,7 +120,7 @@ logging:
   file:
     path: ./data/log_data
 
-fgv-spexregister:
+spexregister:
   base-url: ${API_BASE_URL}
   default-language: sv
   languages:
@@ -165,11 +165,11 @@ fgv-spexregister:
     graphql-url: ${API_SPEXIPEDIA_GRAPHQL_URL:https://api.spexipedia.fgv.local.nu:8443/api/graphql}
     web-url: ${SPEXIPEDIA_URL:http://localhost:3006}
   security:
-    authorized-parties: ${SPEXREGISTER_SECURITY_AUTHORIZED_PARTIES:${fgv-spexregister.keycloak.client.client-id}}
+    authorized-parties: ${API_SECURITY_AUTHORIZED_PARTIES:${spexregister.keycloak.client.client-id}}
   mcp:
     authorized-parties: ${API_KEYCLOAK_MCP_CLIENT_ID:fgv-spexregister-mcp}
   impex:
-    storage-path: ${SPEXREGISTER_IMPEX_STORAGE_PATH:./data/impex_data}
+    storage-path: ./data/impex_data
   mail:
     from: ${MAIL_FROM:noreply@localhost}
     admin-recipients: ${ADMIN_NOTIFICATION_RECIPIENTS:}

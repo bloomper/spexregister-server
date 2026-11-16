@@ -136,11 +136,11 @@ public abstract class AbstractIntegrationTest {
     protected final String keycloakClientId;
     protected final ObjectMapper objectMapper;
     protected RestTestClient restTestClient;
-    @Value("${fgv-spexregister.keycloak.realm}")
+    @Value("${spexregister.keycloak.realm}")
     protected String keycloakRealm;
-    @Value("${fgv-spexregister.keycloak.client.client-id}")
+    @Value("${spexregister.keycloak.client.client-id}")
     protected String keycloakClientClientId;
-    @Value("${fgv-spexregister.keycloak.client.client-secret}")
+    @Value("${spexregister.keycloak.client.client-secret}")
     protected String keycloakClientClientSecret;
 
     /*
@@ -180,7 +180,7 @@ public abstract class AbstractIntegrationTest {
         //registry.add("spring.jpa.properties.hibernate.search.backend.password", opensearch::getPassword);
 
         registry.add("spring.security.oauth2.resourceserver.jwt.issuer-uri", () -> keycloak.getAuthServerUrl() + "/realms/" + TEST_REALM);
-        registry.add("fgv-spexregister.keycloak.url", keycloak::getAuthServerUrl);
+        registry.add("spexregister.keycloak.url", keycloak::getAuthServerUrl);
         authorizationURI = new URIBuilder(keycloak.getAuthServerUrl() + String.format("/realms/%s/protocol/openid-connect/token", TEST_REALM)).build();
     }
 

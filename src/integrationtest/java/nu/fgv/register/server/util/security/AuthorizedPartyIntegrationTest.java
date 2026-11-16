@@ -42,9 +42,9 @@ class AuthorizedPartyIntegrationTest extends AbstractIntegrationTest {
 
     @Value("${spring.security.oauth2.resourceserver.jwt.issuer-uri}")
     private String issuerUri;
-    @Value("${fgv-spexregister.keycloak.admin.client-id}")
+    @Value("${spexregister.keycloak.admin.client-id}")
     private String otherClientId;
-    @Value("${fgv-spexregister.keycloak.admin.client-secret}")
+    @Value("${spexregister.keycloak.admin.client-secret}")
     private String otherClientSecret;
 
     @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")

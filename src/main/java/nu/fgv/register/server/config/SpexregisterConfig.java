@@ -25,13 +25,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * The {@code fgv-spexregister} settings, such as the languages offered.
+ * The {@code spexregister} settings, such as the languages offered.
  *
  * @author Anders Jacobsson
  * @since 2.0
  */
 @Configuration
-@ConfigurationProperties(prefix = "fgv-spexregister")
+@ConfigurationProperties(prefix = "spexregister")
 @Getter
 @Setter
 public class SpexregisterConfig {

@@ -40,8 +40,8 @@ public class DataSeedingCallback implements Callback {
     private final SampleDataImporter sampleDataImporter;
     private final AuditDataSeeder auditDataSeeder;
 
-    public DataSeedingCallback(@Value("${fgv-spexregister.data.seed-audit-data:false}") final boolean seedAuditData,
-                               @Value("${fgv-spexregister.data.import-sample-data:false}") final boolean importSampleData,
+    public DataSeedingCallback(@Value("${spexregister.data.seed-audit-data:false}") final boolean seedAuditData,
+                               @Value("${spexregister.data.import-sample-data:false}") final boolean importSampleData,
                                final SampleDataImporter sampleDataImporter,
                                final AuditDataSeeder auditDataSeeder) {
         this.seedAuditData = seedAuditData;

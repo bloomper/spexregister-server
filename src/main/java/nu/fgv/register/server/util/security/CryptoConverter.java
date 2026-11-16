@@ -51,7 +51,7 @@ public class CryptoConverter implements AttributeConverter<String, String> {
 
     private final SecretKeySpec key;
 
-    public CryptoConverter(@Value("${fgv-spexregister.crypto.secret-key}") final String secretKey) {
+    public CryptoConverter(@Value("${spexregister.crypto.secret-key}") final String secretKey) {
         this.key = new SecretKeySpec(secretKey.getBytes(StandardCharsets.UTF_8), "AES");
     }
 

@@ -55,7 +55,7 @@ public class ExportTasklet implements Tasklet {
 
     private final ApplicationContext applicationContext;
     private final List<ExportEngine> engines;
-    @Value("${fgv-spexregister.impex.storage-path}")
+    @Value("${spexregister.impex.storage-path}")
     private String storagePath;
 
     @Override

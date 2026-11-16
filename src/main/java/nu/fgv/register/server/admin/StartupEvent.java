@@ -39,7 +39,7 @@ public class StartupEvent implements ApplicationListener<ApplicationReadyEvent> 
 
     private final IndexingService indexingService;
 
-    @Value("${fgv-spexregister.data.import-sample-data:false}")
+    @Value("${spexregister.data.import-sample-data:false}")
     private boolean importSampleData;
 
     @Override
