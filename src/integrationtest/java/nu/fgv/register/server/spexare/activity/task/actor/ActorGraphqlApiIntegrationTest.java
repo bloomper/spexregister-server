@@ -262,6 +262,69 @@ class ActorGraphqlApiIntegrationTest extends AbstractGraphqlIntegrationTest {
         }
 
         @Test
+        void should_create_without_character_when_character_is_null() {
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var category = persistTaskCategory(randomizeTaskCategory());
+            final var task = persistTask(randomizeTask(category));
+            final var activity = persistActivity(randomizeActivity(spexare));
+            final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
+            final var vocal = persistVocal(randomizeVocal());
+            final var dto = random.nextObject(ActorCreateDto.class);
+
+            httpGraphQlTester
+                    .mutate()
+                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
+                    .build()
+                    .documentName("spexare/activity/taskActivity/actor/actorCreateWithCharacter")
+                    .variable("spexareId", spexare.getUuid())
+                    .variable("activityId", activity.getUuid())
+                    .variable("taskActivityId", taskActivity.getUuid())
+                    .variable("vocalId", vocal.getId())
+                    .variable("characterId", null)
+                    .variables(objectMapper.convertValue(dto, new TypeReference<>() {
+                    }))
+                    .execute()
+                    .errors()
+                    .verify()
+                    .path("actorCreate", result -> result
+                            .path("role").entity(String.class).isEqualTo(dto.role())
+                            .path("character").valueIsNull()
+                    );
+
+            assertThat(repository.count()).isEqualTo(1);
+        }
+
+        @Test
+        void should_return_NOT_FOUND_when_creating_and_character_not_found() {
+            final var spexare = persistSpexare(randomizeSpexare());
+            final var category = persistTaskCategory(randomizeTaskCategory());
+            final var task = persistTask(randomizeTask(category));
+            final var activity = persistActivity(randomizeActivity(spexare));
+            final var taskActivity = persistTaskActivity(randomizeTaskActivity(activity, task));
+            final var vocal = persistVocal(randomizeVocal());
+            final var dto = random.nextObject(ActorCreateDto.class);
+
+            // Reaching the character lookup shows that characterId is bound to the method's ArgumentValue.
+            httpGraphQlTester
+                    .mutate()
+                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken()))
+                    .build()
+                    .documentName("spexare/activity/taskActivity/actor/actorCreateWithCharacter")
+                    .variable("spexareId", spexare.getUuid())
+                    .variable("activityId", activity.getUuid())
+                    .variable("taskActivityId", taskActivity.getUuid())
+                    .variable("vocalId", vocal.getId())
+                    .variable("characterId", UUID.randomUUID())
+                    .variables(objectMapper.convertValue(dto, new TypeReference<>() {
+                    }))
+                    .execute()
+                    .errors()
+                    .satisfy((errors) -> assertThat(errors)
+                            .anyMatch(error -> error.getExtensions().get("classification").toString().equals(ErrorType.NOT_FOUND.toString()))
+                    );
+        }
+
+        @Test
         void should_return_NOT_FOUND_when_creating_and_spexare_not_found() {
             final var spexare = persistSpexare(randomizeSpexare());
             final var category = persistTaskCategory(randomizeTaskCategory());

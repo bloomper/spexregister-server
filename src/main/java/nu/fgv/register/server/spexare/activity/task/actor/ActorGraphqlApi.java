@@ -57,14 +57,16 @@ public class ActorGraphqlApi {
     private final ActorService service;
     private final ActorCharacterService characterService;
 
+    // characterId is bound by @Argument name under a different Java name: Spring GraphQL's schema inspection matches
+    // parameters by Java name and does not see through ArgumentValue, so it would report a false nullness error.
     @MutationMapping("actorCreate")
     @RequiresAdminOrEditorOrUserOrRevival
     public DataFetcherResult<ActorDto> create(@Argument final UUID spexareId, @Argument final UUID activityId, @Argument final UUID taskActivityId, @Argument final String vocalId, @Valid @Argument final ActorCreateDto input,
-                                                 final ArgumentValue<UUID> characterId) {
+                                                 @Argument("characterId") final ArgumentValue<UUID> character) {
         final ActorDto actor = service.create(spexareId, activityId, taskActivityId, vocalId, input);
 
-        if (characterId.isPresent()) {
-            characterService.setCharacter(actor.getId(), characterId.value());
+        if (character.isPresent()) {
+            characterService.setCharacter(actor.getId(), character.value());
         }
         return buildDataFetcherResult(
                 actor,
@@ -80,11 +82,11 @@ public class ActorGraphqlApi {
     @MutationMapping("actorUpdate")
     @RequiresAdminOrEditorOrUser
     public DataFetcherResult<ActorDto> update(@Argument final UUID spexareId, @Argument final UUID activityId, @Argument final UUID taskActivityId, @Argument final String vocalId, @Valid @Argument final ActorUpdateDto input,
-                                                 final ArgumentValue<UUID> characterId) {
+                                                 @Argument("characterId") final ArgumentValue<UUID> character) {
         final ActorDto actor = service.update(spexareId, activityId, taskActivityId, vocalId, input.id(), input);
 
-        if (characterId.isPresent()) {
-            characterService.setCharacter(actor.getId(), characterId.value());
+        if (character.isPresent()) {
+            characterService.setCharacter(actor.getId(), character.value());
         }
         return buildDataFetcherResult(
                 actor,
