@@ -192,7 +192,7 @@ public class SampleDataImporter {
         final JdbcClient jdbcClient = JdbcClient.create(dataSource.getObject());
         final long started = System.nanoTime();
 
-        timed("Copied base data from Spexipedia", this::pullBaseData);
+        timed("Copied base data from Spexipedia", () -> pullBaseData(jdbcClient));
         SecurityContextHolder.getContext().setAuthentication(AUTH);
         try {
             characterNames = characterNames(jdbcClient);
@@ -215,20 +215,25 @@ public class SampleDataImporter {
     }
 
     /**
-     * Pulls Spexipedia's feed from the start, waiting for Spexipedia for up to ten minutes; refuses without it.
+     * Pulls Spexipedia's feed from the start, waiting for Spexipedia for up to ten minutes; refuses without it. The spex
+     * and tasks are in the feed as soon as Spexipedia starts (its migration seeds them), its sample characters only once
+     * its sample data is made, so the import waits for characters too.
      */
-    private void pullBaseData() {
+    private void pullBaseData(final JdbcClient jdbcClient) {
         final SyncService sync = syncService.getObject();
 
         for (int attempt = 1; attempt <= SPEXIPEDIA_ATTEMPTS; attempt++) {
             final SyncService.Result result = sync.pull(true);
 
-            if (result != null && result.error() == null && result.applied() > 0) {
+            final boolean characters = jdbcClient.sql("SELECT COUNT(*) FROM spex_character").query(Long.class).single() > 0;
+
+            if (result != null && result.error() == null && result.applied() > 0 && characters) {
                 log.info("Copied {} changes from Spexipedia", result.applied());
                 return;
             }
             log.info("Waiting for Spexipedia's sample data ({}/{}): {}", attempt, SPEXIPEDIA_ATTEMPTS,
-                    result == null ? "a pull is running" : Objects.requireNonNullElse(result.error(), "no changes yet"));
+                    result == null ? "a pull is running" : result.error() != null ? result.error()
+                            : result.applied() == 0 ? "no changes yet" : "no characters yet");
             try {
                 Thread.sleep(SPEXIPEDIA_RETRY_INTERVAL);
             } catch (final InterruptedException e) {
