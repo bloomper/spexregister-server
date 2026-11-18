@@ -13,6 +13,8 @@ type Task {
     name: String!
     "Retired in Spexipedia: kept on activities, not offered for new ones."
     retired: Boolean!
+    "Whether Spexipedia shows it as a task of the board (the direktion) of a spex."
+    board: Boolean!
     category: TaskCategory
     createdBy: String!
     createdAt: Instant!

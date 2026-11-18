@@ -38,10 +38,10 @@ public record FeedChange(String sequence, String kind, UUID id, String change, @
                        @Nullable String posterUrl, boolean retired) {
     }
 
-    public record TaskCategory(UUID id, String name, boolean actorPresent, boolean board, boolean retired) {
+    public record TaskCategory(UUID id, String name, boolean actorPresent, boolean retired) {
     }
 
-    public record Task(UUID id, String name, @Nullable UUID categoryId, boolean retired) {
+    public record Task(UUID id, String name, @Nullable UUID categoryId, boolean board, boolean retired) {
     }
 
     public record Character(UUID id, UUID spexId, String name, int position, boolean retired) {

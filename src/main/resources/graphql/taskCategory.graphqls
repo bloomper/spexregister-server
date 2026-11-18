@@ -13,8 +13,6 @@ type TaskCategory {
     name: String!
     "Whether the tasks are performed on stage as an actor."
     actorPresent: Boolean!
-    "Whether Spexipedia shows its tasks as the board of a spex."
-    board: Boolean!
     "Retired in Spexipedia."
     retired: Boolean!
     createdBy: String!

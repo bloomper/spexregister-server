@@ -54,7 +54,7 @@ public final class BaseDataFixtures {
         final UUID id = UUID.randomUUID();
 
         sync.applyAll(List.of(new FeedChange(next(), "TASK_CATEGORY", id, "UPSERT", null, null, null,
-                new FeedChange.TaskCategory(id, name, actorPresent, false, false), null, null)));
+                new FeedChange.TaskCategory(id, name, actorPresent, false), null, null)));
         return id;
     }
 
@@ -62,7 +62,7 @@ public final class BaseDataFixtures {
         final UUID id = UUID.randomUUID();
 
         sync.applyAll(List.of(new FeedChange(next(), "TASK", id, "UPSERT", null, null, null, null,
-                new FeedChange.Task(id, name, categoryId, false), null)));
+                new FeedChange.Task(id, name, categoryId, false, false), null)));
         return id;
     }
 

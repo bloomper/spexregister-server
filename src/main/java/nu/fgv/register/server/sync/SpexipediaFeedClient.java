@@ -42,8 +42,8 @@ public class SpexipediaFeedClient {
                         sequence kind id change mergedIntoId
                         spexCategory { id name firstYear logoUrl retired }
                         spex { id year title categoryId parentId posterUrl retired }
-                        taskCategory { id name actorPresent board retired }
-                        task { id name categoryId retired }
+                        taskCategory { id name actorPresent retired }
+                        task { id name categoryId board retired }
                         character { id spexId name position retired }
                     }
                 }
