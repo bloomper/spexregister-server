@@ -18,16 +18,16 @@ ALTER TABLE spex_audit
     ADD COLUMN poster_url VARCHAR(1000) NULL;
 
 ALTER TABLE task_category
-    ADD COLUMN retired BIT NOT NULL DEFAULT 0,
-    ADD COLUMN board   BIT NOT NULL DEFAULT 0;
+    ADD COLUMN retired BIT NOT NULL DEFAULT 0;
 ALTER TABLE task_category_audit
-    ADD COLUMN retired BIT NULL,
-    ADD COLUMN board   BIT NULL;
+    ADD COLUMN retired BIT NULL;
 
 ALTER TABLE task
-    ADD COLUMN retired BIT NOT NULL DEFAULT 0;
+    ADD COLUMN retired BIT NOT NULL DEFAULT 0,
+    ADD COLUMN board   BIT NOT NULL DEFAULT 0;
 ALTER TABLE task_audit
-    ADD COLUMN retired BIT NULL;
+    ADD COLUMN retired BIT NULL,
+    ADD COLUMN board   BIT NULL;
 
 -- Posters and logos were images of their own; Spexipedia has them now
 UPDATE spex_details SET poster_id = NULL;

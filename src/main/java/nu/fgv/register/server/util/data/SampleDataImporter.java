@@ -272,7 +272,7 @@ public class SampleDataImporter {
         final Long earliest = jdbcClient.sql("SELECT id FROM spex WHERE parent_id IS NULL ORDER BY year, id LIMIT 1").query(Long.class).optional().orElse(null);
         final Long ensemble = jdbcClient.sql("SELECT t.id FROM task t JOIN task_category c ON c.id = t.category_id WHERE c.actor_present = 1 ORDER BY t.id LIMIT 1")
                 .query(Long.class).optional().orElse(null);
-        final Long board = jdbcClient.sql("SELECT t.id FROM task t JOIN task_category c ON c.id = t.category_id WHERE c.board = 1 ORDER BY t.name LIMIT 1")
+        final Long board = jdbcClient.sql("SELECT id FROM task WHERE board = 1 ORDER BY name LIMIT 1")
                 .query(Long.class).optional().orElse(null);
 
         for (int i = 0; i < fixed.length; i++) {

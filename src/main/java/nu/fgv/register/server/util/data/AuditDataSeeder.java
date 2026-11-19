@@ -72,8 +72,8 @@ public class AuditDataSeeder {
             AuditedTable.of("nu.fgv.register.server.spex.SpexDetails", "spex_details", "id, uuid, title, category_id"),
             AuditedTable.of("nu.fgv.register.server.spex.Spex", "spex", "id, uuid, year, parent_id, details_id, poster_url, retired"),
             AuditedTable.of("nu.fgv.register.server.spex.character.SpexCharacter", "spex_character", "id, uuid, spex_id, name, position, retired"),
-            AuditedTable.of("nu.fgv.register.server.task.category.TaskCategory", "task_category", "id, uuid, name, actor_present, board, retired"),
-            AuditedTable.of("nu.fgv.register.server.task.Task", "task", "id, uuid, name, category_id, retired"),
+            AuditedTable.of("nu.fgv.register.server.task.category.TaskCategory", "task_category", "id, uuid, name, actor_present, retired"),
+            AuditedTable.of("nu.fgv.register.server.task.Task", "task", "id, uuid, name, category_id, board, retired"),
             AuditedTable.of("nu.fgv.register.server.spexare.Spexare", "spexare",
                             "id, uuid, first_name, last_name, nick_name, social_security_number, deceased, published, graduation, comment, image_id, partner_id")
                     .withHistory("comment = CONCAT('(tidigare) ', COALESCE(comment, ''))", "graduation = LEFT(CONCAT('(tidigare) ', COALESCE(graduation, '')), 255)", "nick_name = LEFT(CONCAT('(tidigare) ', COALESCE(nick_name, '')), 255)"),

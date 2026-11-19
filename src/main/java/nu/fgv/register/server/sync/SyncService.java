@@ -311,7 +311,6 @@ public class SyncService {
 
         category.setName(record.name());
         category.setActorPresent(record.actorPresent());
-        category.setBoard(record.board());
         category.setRetired(record.retired());
         taskCategoryRepository.save(category);
     }
@@ -327,6 +326,7 @@ public class SyncService {
         task.setName(record.name());
         task.setCategory(record.categoryId() == null ? null : taskCategoryRepository.findByUuid(record.categoryId())
                 .orElseThrow(() -> new IllegalStateException("The task category " + record.categoryId() + " is not here yet")));
+        task.setBoard(record.board());
         task.setRetired(record.retired());
         taskRepository.save(task);
     }

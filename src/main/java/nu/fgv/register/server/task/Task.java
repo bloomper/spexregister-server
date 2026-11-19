@@ -101,6 +101,12 @@ public class Task extends AbstractAuditable implements Serializable {
     @Column(name = "retired", nullable = false)
     private boolean retired;
 
+    /**
+     * Whether Spexipedia shows it as a task of the board (the direktion) of a spex.
+     */
+    @Column(name = "board", nullable = false)
+    private boolean board;
+
     @Override
     public boolean equals(final @Nullable Object o) {
         if (this == o) {
