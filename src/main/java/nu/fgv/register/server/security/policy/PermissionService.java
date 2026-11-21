@@ -114,18 +114,6 @@ public class PermissionService {
     }
 
     /**
-     * Lets the entity through when the caller may administer it, for use in {@code Optional.map}.
-     *
-     * @param object the entity
-     * @param <T>    the entity type
-     * @return the entity
-     * @throws org.springframework.security.access.AccessDeniedException when the caller may not
-     */
-    public <T> T checkAdministrationPermission(final T object) {
-        return check(hasAdministrationPermission(object), object);
-    }
-
-    /**
      * Whether the entity's policy gives the caller the permission. The other checks also accept
      * {@link Permission#ADMINISTRATION}.
      *
