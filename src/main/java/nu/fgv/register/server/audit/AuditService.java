@@ -587,6 +587,14 @@ public class AuditService {
                 .changes(differ.diff(descriptor.entityClass(), current, snapshot))
                 .build());
 
+        if (current instanceof final Spexare spexare && snapshot instanceof final Spexare then) {
+            final Spexare wanted = then.getPartner() == null ? null : entityManager.find(Spexare.class, identifierOf(then.getPartner()));
+
+            // A partner who no longer exists is left out with a warning by the restore, which keeps the present one
+            partnerLinks(spexare, spexare.getPartner(), then.getPartner() != null && wanted == null ? spexare.getPartner() : wanted)
+                    .forEach((other, partner) -> warnings.add(partnerWarning(other, partner)));
+        }
+
         if (cascade) {
             previewChildren(descriptor.children(), current, id, revision, entries, warnings);
         }
@@ -600,7 +608,9 @@ public class AuditService {
     /**
      * Restores the entity's audited fields to the revision. With cascade, the
      * records that belong to it are restored too: those changed are put back, those added since are removed and those
-     * removed since are re-created with the same external ids. The entity itself must still exist. Recorded as a
+     * removed since are re-created with the same external ids, except one that must refer to something that no longer
+     * exists, which is left out with a warning. The entity itself must still exist. A spexare's partner
+     * is linked back from the other side and whoever lost a partner by it is freed, each with a warning. Recorded as a
      * {@link AuditSource#RESTORE} revision.
      *
      * @param type     the entity type
@@ -622,9 +632,18 @@ public class AuditService {
         final Object snapshot = requireSnapshot(descriptor, id, revision);
 
         final RestoreContext context = new RestoreContext();
+        final Spexare partnerBefore = current instanceof final Spexare spexare ? spexare.getPartner() : null;
 
         applyProperties(descriptor.entityClass(), snapshot, current, context);
         context.updated++;
+
+        if (current instanceof final Spexare spexare) {
+            partnerLinks(spexare, partnerBefore, spexare.getPartner()).forEach((other, partner) -> {
+                other.setPartner(partner);
+                context.updated++;
+                context.warnings.add(partnerWarning(other, partner));
+            });
+        }
 
         if (cascade) {
             restoreChildren(descriptor.children(), current, id, revision, context);
@@ -638,6 +657,44 @@ public class AuditService {
                 .created(context.created)
                 .deleted(context.deleted)
                 .warnings(List.copyOf(context.warnings))
+                .build();
+    }
+
+    /**
+     * The other spexare a restored partner link reaches, each with the partner it is to have: a partner is linked from
+     * both sides, so the one left is freed, the one taken is linked back, and whoever that one had is freed.
+     */
+    private Map<Spexare, @Nullable Spexare> partnerLinks(final Spexare spexare, final @Nullable Spexare before, final @Nullable Spexare after) {
+        final Map<Spexare, @Nullable Spexare> links = new LinkedHashMap<>();
+
+        if (sameSpexare(before, after)) {
+            return links;
+        }
+        if (before != null && sameSpexare(before.getPartner(), spexare)) {
+            links.put(before, null);
+        }
+        if (after != null) {
+            final Spexare theirs = after.getPartner();
+
+            if (theirs != null && !sameSpexare(theirs, spexare)) {
+                links.put(theirs, null);
+            }
+            links.put(after, spexare);
+        }
+
+        return links;
+    }
+
+    private boolean sameSpexare(final @Nullable Spexare one, final @Nullable Spexare other) {
+        return one == null || other == null ? one == other : Objects.equals(identifierOf(one), identifierOf(other));
+    }
+
+    private RestoreWarningDto partnerWarning(final Spexare other, final @Nullable Spexare partner) {
+        final String name = Objects.requireNonNullElse(registry.labelFor(other), String.valueOf(other.getUuid()));
+
+        return RestoreWarningDto.builder()
+                .code(partner == null ? "PARTNER_UNLINKED" : "PARTNER_LINKED")
+                .message(partner == null ? "%s no longer has a partner".formatted(name) : "%s is linked back as partner".formatted(name))
                 .build();
     }
 
@@ -668,6 +725,13 @@ public class AuditService {
 
                     previewChildren(child.children(), existing, entry.getKey(), revision, entries, warnings);
                 } else {
+                    final RestoreWarningDto missing = missingRequiredReference(child.entityClass(), entry.getValue());
+
+                    if (missing != null) {
+                        warnings.add(missing);
+                        continue;
+                    }
+
                     entries.add(RestorePreviewEntryDto.builder()
                             .type(child.type())
                             .id(externalIdOf(child.entityClass(), entry.getKey(), entry.getValue()))
@@ -707,6 +771,14 @@ public class AuditService {
                     context.updated++;
                     restoreChildren(child.children(), existing, entry.getKey(), revision, context);
                 } else {
+                    final RestoreWarningDto missing = missingRequiredReference(child.entityClass(), entry.getValue());
+
+                    // Without what it must refer to the record cannot exist again, and nothing below it either
+                    if (missing != null) {
+                        context.warnings.add(missing);
+                        continue;
+                    }
+
                     final Object created = instantiate(child.entityClass());
 
                     applyProperties(child.entityClass(), entry.getValue(), created, context);
@@ -755,10 +827,7 @@ public class AuditService {
                 final Object reference = referenceId == null ? null : entityManager.find(attribute.getJavaType(), referenceId);
 
                 if (reference == null) {
-                    context.warnings.add(RestoreWarningDto.builder()
-                            .code("REFERENCE_MISSING")
-                            .message("%s.%s referenced %s which no longer exists".formatted(entityClass.getSimpleName(), attribute.getName(), referenceId))
-                            .build());
+                    context.warnings.add(referenceMissing(entityClass, attribute, referenceId));
                     continue;
                 }
 
@@ -767,6 +836,34 @@ public class AuditService {
 
             writeField(unwrapped, attribute.getName(), value);
         }
+    }
+
+    /**
+     * A warning for the first reference the snapshot must have that no longer exists, null when all are there. A record
+     * to re-create cannot be saved without them.
+     */
+    private @Nullable RestoreWarningDto missingRequiredReference(final Class<?> entityClass, final Object snapshot) {
+        for (final SingularAttribute<?, ?> attribute : differ.attributesOf(entityClass)) {
+            final Object value = attribute.isAssociation() && !attribute.isOptional() && !AuditDiffer.isAuditedBinary(entityClass, attribute)
+                    ? differ.read(attribute, snapshot) : null;
+
+            if (value != null) {
+                final Object referenceId = entityManagerFactory.getPersistenceUnitUtil().getIdentifier(value);
+
+                if (referenceId == null || entityManager.find(attribute.getJavaType(), referenceId) == null) {
+                    return referenceMissing(entityClass, attribute, referenceId);
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private static RestoreWarningDto referenceMissing(final Class<?> entityClass, final SingularAttribute<?, ?> attribute, final @Nullable Object referenceId) {
+        return RestoreWarningDto.builder()
+                .code("REFERENCE_MISSING")
+                .message("%s.%s referenced %s which no longer exists".formatted(entityClass.getSimpleName(), attribute.getName(), referenceId))
+                .build();
     }
 
     private void restoreImage(final Object target, final SingularAttribute<?, ?> attribute, final @Nullable Object snapshotValue) {

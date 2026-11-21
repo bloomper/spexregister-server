@@ -541,15 +541,6 @@
           "attributes": {}
         },
         {
-          "id": "9ed9f4c7-0ad2-4e40-9bd1-88888a4a2346",
-          "name": "ARCHIVE",
-          "description": "Spexarkivet's service account: reads which published tracks link to numbers",
-          "composite": false,
-          "clientRole": true,
-          "containerId": "122c172e-1fbc-4566-8d09-60cfe9721c33",
-          "attributes": {}
-        },
-        {
           "id": "4f7b18c2-6d6f-49c8-97f9-9373955413b7",
           "name": "NOTIFY",
           "description": "Spexipedia's service account: tells Spexify to pull the change feed",
@@ -714,6 +705,15 @@
           "id": "e8af2b8f-e443-4391-857f-f00b8066b81a",
           "name": "ADMIN",
           "description": "Administers Spexarkiv",
+          "composite": false,
+          "clientRole": true,
+          "containerId": "ca0ec03d-ee2b-4662-9fff-5451b23f06a5",
+          "attributes": {}
+        },
+        {
+          "id": "8d0f3c2a-6b1e-4f7a-9c55-2e4b7a1d9f63",
+          "name": "SPEXIFY",
+          "description": "Spexify's service account: read the open, published arrangements of numbers and their files",
           "composite": false,
           "clientRole": true,
           "containerId": "ca0ec03d-ee2b-4662-9fff-5451b23f06a5",
@@ -974,7 +974,7 @@
           "SYNC"
         ],
         "fgv-archive": [
-          "LINKS"
+          "SPEXIFY"
         ]
       },
       "notBefore": 0,
@@ -1052,9 +1052,6 @@
         ],
         "fgv-spexipedia": [
           "SYNC"
-        ],
-        "fgv-spexify": [
-          "ARCHIVE"
         ]
       },
       "notBefore": 0,
@@ -1363,12 +1360,6 @@
         ]
       },
       {
-        "client": "fgv-archive-service",
-        "roles": [
-          "ARCHIVE"
-        ]
-      },
-      {
         "client": "fgv-spexipedia",
         "roles": [
           "USER"
@@ -1549,7 +1540,7 @@
       {
         "client": "fgv-spexify-service",
         "roles": [
-          "LINKS"
+          "SPEXIFY"
         ]
       },
       {

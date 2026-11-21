@@ -20,6 +20,7 @@ package nu.fgv.register.server.map;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Tuple;
 import lombok.extern.slf4j.Slf4j;
+import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import nu.fgv.register.server.map.Geocoder.AddressQuery;
 import nu.fgv.register.server.map.Geocoder.Coordinates;
 import nu.fgv.register.server.util.job.MaintenanceJob;
@@ -86,6 +87,7 @@ public class GeocodingService {
      * Geocodes the changed addresses on the {@code spexregister.jobs.geocode-addresses.cron-expression} schedule.
      */
     @Scheduled(cron = "${spexregister.jobs.geocode-addresses.cron-expression}")
+    @SchedulerLock(name = "geocode-addresses", lockAtMostFor = "PT30M")
     public void scheduledRun() {
         runAsSystem(() -> tracker.run(MaintenanceJob.ADDRESS_GEOCODING, this::geocode));
     }

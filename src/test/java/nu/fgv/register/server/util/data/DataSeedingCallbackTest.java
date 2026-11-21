@@ -21,9 +21,11 @@ import org.flywaydb.core.api.callback.Event;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InOrder;
+import org.springframework.mock.env.MockEnvironment;
 
 import java.sql.Connection;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
@@ -44,6 +46,7 @@ class DataSeedingCallbackTest {
     private final AuditDataSeeder auditDataSeeder = mock(AuditDataSeeder.class);
     private final Context context = mock(Context.class);
     private final Connection connection = mock(Connection.class);
+    private final MockEnvironment environment = new MockEnvironment();
 
     @BeforeEach
     void setUp() {
@@ -106,7 +109,34 @@ class DataSeedingCallbackTest {
         verify(auditDataSeeder, never()).seedBaseline(any());
     }
 
+    @Test
+    void should_refuse_sample_data_in_production() {
+        environment.setActiveProfiles("production");
+
+        assertThatThrownBy(() -> callback(false, true).handle(Event.AFTER_MIGRATE, context))
+                .isInstanceOf(IllegalStateException.class);
+        verifyNoInteractions(sampleDataImporter);
+    }
+
+    @Test
+    void should_import_sample_data_on_staging() {
+        environment.setActiveProfiles("staging");
+
+        callback(false, true).handle(Event.AFTER_MIGRATE, context);
+
+        verify(sampleDataImporter).importSampleData(connection);
+    }
+
+    @Test
+    void should_start_in_production_without_sample_data() {
+        environment.setActiveProfiles("production");
+
+        callback(false, false).handle(Event.AFTER_MIGRATE, context);
+
+        verifyNoInteractions(sampleDataImporter, auditDataSeeder);
+    }
+
     private DataSeedingCallback callback(final boolean seedAuditData, final boolean importSampleData) {
-        return new DataSeedingCallback(seedAuditData, importSampleData, sampleDataImporter, auditDataSeeder);
+        return new DataSeedingCallback(seedAuditData, importSampleData, sampleDataImporter, auditDataSeeder, environment);
     }
 }

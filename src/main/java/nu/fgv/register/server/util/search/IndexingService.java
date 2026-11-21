@@ -19,6 +19,7 @@ package nu.fgv.register.server.util.search;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import nu.fgv.register.server.spexare.Spexare;
 import nu.fgv.register.server.util.job.MaintenanceJob;
 import nu.fgv.register.server.util.job.MaintenanceJobTracker;
@@ -96,6 +97,7 @@ public class IndexingService {
      * Rebuilds the spexare index on the {@code spexregister.jobs.full-index.cron-expression} schedule.
      */
     @Scheduled(cron = "${spexregister.jobs.full-index.cron-expression}")
+    @SchedulerLock(name = "full-index", lockAtMostFor = "PT30M")
     @Transactional
     public void scheduledRun() {
         log.info("Starting search full re-indexing job");

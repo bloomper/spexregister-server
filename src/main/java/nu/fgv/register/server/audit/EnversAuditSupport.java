@@ -109,17 +109,6 @@ public class EnversAuditSupport {
     /**
      * @param entityType the entity type
      * @param id         the entity id
-     * @param <E>        the entity type
-     * @param <ID>       the id type
-     * @return the entity's revision numbers, oldest first
-     */
-    public <E, ID> List<Number> revisionNumbers(final Class<E> entityType, final ID id) {
-        return auditReader().getRevisions(entityType, id);
-    }
-
-    /**
-     * @param entityType the entity type
-     * @param id         the entity id
      * @param revision   the revision number
      * @param <E>        the entity type
      * @param <ID>       the id type

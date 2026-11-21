@@ -278,6 +278,27 @@ class ImpexJobIntegrationTest extends AbstractIntegrationTest {
         return ((Number) Objects.requireNonNull(reference).get("id")).longValue();
     }
 
+    // A member follows and fetches the export of their own data, so the job endpoints are open to USER; the service
+    // still gives a job only to who started it
+    @Test
+    void should_let_a_member_ask_for_jobs_but_never_give_them_someone_elses() throws Exception {
+        final String admin = obtainAdminAccessToken();
+        final String member = obtainUserAccessToken();
+        final Long adminsJob = startTagExport(admin);
+
+        assertThat(awaitJob(admin, adminsJob)).isEqualTo("COMPLETED");
+        for (final String path : List.of("/jobs/{id}/status", "/jobs/{id}", "/jobs/{id}/results")) {
+            restTestClient.get().uri(path, adminsJob).header(HttpHeaders.AUTHORIZATION, member).apiVersion("1.0").exchange()
+                    .expectStatus().isForbidden();
+        }
+        // No such job: the answer of someone who may ask, which a member now is
+        restTestClient.get().uri("/jobs/{id}/status", 987654321L).header(HttpHeaders.AUTHORIZATION, member).apiVersion("1.0").exchange()
+                .expectStatus().isNotFound();
+        // Listing and removing jobs stay with editors and admins
+        restTestClient.get().uri("/jobs").header(HttpHeaders.AUTHORIZATION, member).apiVersion("1.0").exchange()
+                .expectStatus().isForbidden();
+    }
+
     private String awaitJob(final String token, final Long jobId) throws InterruptedException {
         final Instant deadline = Instant.now().plus(Duration.ofSeconds(30));
 

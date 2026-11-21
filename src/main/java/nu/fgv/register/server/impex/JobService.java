@@ -18,6 +18,7 @@ package nu.fgv.register.server.impex;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import nu.fgv.register.server.impex.exporting.ExportService;
 import nu.fgv.register.server.impex.importing.AbstractImportService;
 import nu.fgv.register.server.impex.model.ImpexType;
@@ -411,6 +412,7 @@ public class JobService {
      * {@code spexregister.jobs.job-cleanup.cron-expression} schedule.
      */
     @Scheduled(cron = "${spexregister.jobs.job-cleanup.cron-expression}")
+    @SchedulerLock(name = "job-cleanup", lockAtMostFor = "PT30M")
     public void scheduledCleanup() {
         tracker.run(MaintenanceJob.JOB_CLEANUP, () -> {
             log.info("Starting job metadata and files cleanup job");

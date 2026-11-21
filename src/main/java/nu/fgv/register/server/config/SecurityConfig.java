@@ -36,6 +36,7 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
 import org.springframework.security.oauth2.core.OAuth2TokenValidator;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -98,11 +99,15 @@ public class SecurityConfig {
     public SecurityFilterChain mcpSecurityFilterChain(final HttpSecurity http,
                                                       @Value("${spring.ai.mcp.server.streamable-http.mcp-endpoint}") final String mcpEndpoint,
                                                       @Value("${spring.security.oauth2.resourceserver.jwt.issuer-uri}") final String issuerUri,
+                                                      @Value("${spring.security.oauth2.resourceserver.jwt.jwk-set-uri:}") final String jwkSetUri,
                                                       @Value("${spexregister.mcp.authorized-parties}") final List<String> authorizedParties,
                                                       @Value("${spexregister.base-url}") final String baseUrl) {
         final String resource = UriComponentsBuilder.fromUriString(baseUrl).replacePath(mcpEndpoint).build().toUriString();
         final JwtDecoder jwtDecoder = new SupplierJwtDecoder(() -> {
-            final NimbusJwtDecoder decoder = NimbusJwtDecoder.withIssuerLocation(issuerUri).build();
+            // In a container Keycloak's keys are read inside the network, as for the rest of the API
+            final NimbusJwtDecoder decoder = StringUtils.hasText(jwkSetUri)
+                    ? NimbusJwtDecoder.withJwkSetUri(jwkSetUri).build()
+                    : NimbusJwtDecoder.withIssuerLocation(issuerUri).build();
             decoder.setJwtValidator(new DelegatingOAuth2TokenValidator<>(
                     JwtValidators.createDefaultWithIssuer(issuerUri),
                     new JwtAudienceValidator(resource),
@@ -117,12 +122,12 @@ public class SecurityConfig {
         http
                 .securityMatcher(mcpEndpoint, "/.well-known/oauth-protected-resource/**")
                 .csrf(AbstractHttpConfigurer::disable)
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize ->
                         authorize
                                 .requestMatchers(HttpMethod.GET, "/.well-known/oauth-protected-resource/**").permitAll()
                                 .anyRequest().authenticated()
                 )
-                .securityContext(context -> context.requireExplicitSave(false))
                 .with(McpServerOAuth2Configurer.mcpServerOAuth2(), mcp -> mcp
                         .authorizationServer(issuerUri)
                         .resourcePath(mcpEndpoint)
@@ -137,6 +142,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(final HttpSecurity http) {
         http
                 .csrf(AbstractHttpConfigurer::disable)
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize ->
                         authorize
                                 .requestMatchers(EndpointRequest.to(HealthEndpoint.class)).permitAll()
@@ -147,7 +153,6 @@ public class SecurityConfig {
                                 .requestMatchers(HttpMethod.GET, "/api/settings/**").permitAll()
                                 .anyRequest().authenticated()
                 )
-                .securityContext(context -> context.requireExplicitSave(false))
                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(withDefaults()));
         return http.build();
     }
