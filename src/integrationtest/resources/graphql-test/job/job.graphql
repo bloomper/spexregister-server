@@ -1,0 +1,9 @@
+query job ($id: ID!) {
+    job(id: $id) {
+        id
+        name
+        status
+        exitStatus
+        hasDownload
+    }
+}

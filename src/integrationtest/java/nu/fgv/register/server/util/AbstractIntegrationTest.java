@@ -54,6 +54,7 @@ import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.security.authentication.TestingAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -66,6 +67,7 @@ import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.testcontainers.lifecycle.Startables;
 import org.testcontainers.mysql.MySQLContainer;
+import reactor.core.publisher.Hooks;
 import tools.jackson.databind.ObjectMapper;
 
 import javax.sql.DataSource;
@@ -246,6 +248,10 @@ public abstract class AbstractIntegrationTest {
     public void baseSetUp() {
         resetStateOncePerTestClass();
         SecurityContextHolder.getContext().setAuthentication(TEST_AUTH);
+        // spring-security-test's ReactorContextTestExecutionListener hooks every Reactor operator in the JVM, the
+        // server's too, to carry this thread's security context. The server's threads inherit it, so TEST_AUTH would
+        // stand in for the caller of every reactive endpoint instead of the token sent with the request.
+        Hooks.resetOnLastOperator(SecurityContext.class.getName());
     }
 
     private void resetStateOncePerTestClass() {

@@ -19,6 +19,8 @@ package nu.fgv.register.server.audit;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.PersistenceUnitUtil;
+import jakarta.persistence.metamodel.Attribute;
+import jakarta.persistence.metamodel.PluralAttribute;
 import jakarta.persistence.metamodel.SingularAttribute;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -56,6 +58,7 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -606,7 +609,8 @@ public class AuditService {
     }
 
     /**
-     * Restores the entity's audited fields to the revision. With cascade, the
+     * Restores the entity's audited fields to the revision, among them the many-to-many associations it owns, such as a
+     * spexare's tags; a tag that no longer exists is left out with a warning. With cascade, the
      * records that belong to it are restored too: those changed are put back, those added since are removed and those
      * removed since are re-created with the same external ids, except one that must refer to something that no longer
      * exists, which is left out with a warning. The entity itself must still exist. A spexare's partner
@@ -836,6 +840,44 @@ public class AuditService {
 
             writeField(unwrapped, attribute.getName(), value);
         }
+
+        for (final PluralAttribute<?, ?, ?> attribute : differ.collectionsOf(entityClass)) {
+            restoreCollection(entityClass, attribute, differ.elementsOf(attribute, snapshot), unwrapped, context);
+        }
+    }
+
+    /**
+     * Puts back the members of a many-to-many association, such as a spexare's tags, as they were in the snapshot. One
+     * that no longer exists is left out with a warning.
+     */
+    private void restoreCollection(final Class<?> entityClass,
+                                   final PluralAttribute<?, ?, ?> attribute,
+                                   final Collection<?> snapshotElements,
+                                   final Object target,
+                                   final RestoreContext context) {
+        final Set<Object> wanted = new LinkedHashSet<>();
+
+        for (final Object element : snapshotElements) {
+            final Object referenceId = identifierOf(element);
+            final Object reference = referenceId == null ? null : entityManager.find(attribute.getElementType().getJavaType(), referenceId);
+
+            if (reference == null) {
+                context.warnings.add(referenceMissing(entityClass, attribute, referenceId));
+                continue;
+            }
+
+            wanted.add(reference);
+        }
+
+        @SuppressWarnings("unchecked") final Collection<Object> current = (Collection<Object>) differ.read(attribute, target);
+
+        if (current == null) {
+            writeField(target, attribute.getName(), new HashSet<>(wanted));
+            return;
+        }
+
+        current.retainAll(wanted);
+        current.addAll(wanted);
     }
 
     /**
@@ -859,7 +901,7 @@ public class AuditService {
         return null;
     }
 
-    private static RestoreWarningDto referenceMissing(final Class<?> entityClass, final SingularAttribute<?, ?> attribute, final @Nullable Object referenceId) {
+    private static RestoreWarningDto referenceMissing(final Class<?> entityClass, final Attribute<?, ?> attribute, final @Nullable Object referenceId) {
         return RestoreWarningDto.builder()
                 .code("REFERENCE_MISSING")
                 .message("%s.%s referenced %s which no longer exists".formatted(entityClass.getSimpleName(), attribute.getName(), referenceId))

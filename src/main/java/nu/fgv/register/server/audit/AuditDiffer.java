@@ -17,9 +17,11 @@
 package nu.fgv.register.server.audit;
 
 import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.PersistenceUnitUtil;
 import jakarta.persistence.metamodel.Attribute;
 import jakarta.persistence.metamodel.EntityType;
+import jakarta.persistence.metamodel.PluralAttribute;
 import jakarta.persistence.metamodel.SingularAttribute;
 import lombok.RequiredArgsConstructor;
 import nu.fgv.register.server.image.Image;
@@ -33,7 +35,9 @@ import org.springframework.util.StringUtils;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -41,7 +45,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Computes the differences between two Envers snapshots of the same entity type, driven by the
- * JPA metamodel so that no per-entity code is required.
+ * JPA metamodel so that no per-entity code is required. Besides the single-valued attributes this covers the
+ * many-to-many associations the entity owns, such as a spexare's tags, whose join table Envers records.
  *
  * @author Anders Jacobsson
  * @since 2.0
@@ -56,11 +61,23 @@ public class AuditDiffer {
     private final AuditRegistry registry;
 
     private final Map<Class<?>, List<SingularAttribute<?, ?>>> auditedAttributes = new ConcurrentHashMap<>();
+    private final Map<Class<?>, List<PluralAttribute<?, ?, ?>>> auditedCollections = new ConcurrentHashMap<>();
 
     private static boolean isNotAudited(final Class<?> entityClass, final Attribute<?, ?> attribute) {
         final Field field = ReflectionUtils.findField(entityClass, attribute.getName());
 
         return field == null || field.isAnnotationPresent(NotAudited.class);
+    }
+
+    private static boolean isOwnedManyToMany(final Class<?> entityClass, final PluralAttribute<?, ?, ?> attribute) {
+        if (attribute.getPersistentAttributeType() != Attribute.PersistentAttributeType.MANY_TO_MANY) {
+            return false;
+        }
+
+        final Field field = ReflectionUtils.findField(entityClass, attribute.getName());
+        final ManyToMany manyToMany = field == null ? null : field.getAnnotation(ManyToMany.class);
+
+        return manyToMany != null && manyToMany.mappedBy().isEmpty();
     }
 
     private static boolean isBinary(final Class<?> entityClass, final SingularAttribute<?, ?> attribute) {
@@ -159,6 +176,20 @@ public class AuditDiffer {
             }
         }
 
+        for (final PluralAttribute<?, ?, ?> attribute : collectionsOf(entityClass)) {
+            final Map<String, String> oldElements = labelsById(elementsOf(attribute, before), util);
+            final Map<String, String> newElements = labelsById(elementsOf(attribute, after), util);
+
+            if (!oldElements.keySet().equals(newElements.keySet())) {
+                changes.add(FieldChangeDto.builder()
+                        .field(attribute.getName())
+                        .oldValue(display(oldElements))
+                        .newValue(display(newElements))
+                        .binary(false)
+                        .build());
+            }
+        }
+
         changes.sort(Comparator.comparing(FieldChangeDto::field));
 
         return List.copyOf(changes);
@@ -182,6 +213,58 @@ public class AuditDiffer {
                 .sorted(Comparator.comparing(Attribute::getName))
                 .<SingularAttribute<?, ?>>map(a -> a)
                 .toList();
+    }
+
+    /**
+     * @param entityClass the entity type
+     * @return the audited many-to-many associations it owns, by name
+     */
+    public List<PluralAttribute<?, ?, ?>> collectionsOf(final Class<?> entityClass) {
+        return auditedCollections.computeIfAbsent(entityClass, this::resolveCollections);
+    }
+
+    private List<PluralAttribute<?, ?, ?>> resolveCollections(final Class<?> entityClass) {
+        final EntityType<?> entityType = entityManagerFactory.getMetamodel().entity(entityClass);
+
+        return entityType.getPluralAttributes().stream()
+                .filter(a -> isOwnedManyToMany(entityClass, a))
+                .filter(a -> !isNotAudited(entityClass, a))
+                .sorted(Comparator.comparing(Attribute::getName))
+                .<PluralAttribute<?, ?, ?>>map(a -> a)
+                .toList();
+    }
+
+    /**
+     * @param attribute a collection attribute
+     * @param entity    a snapshot, or null
+     * @return the entities in the collection, empty when there are none
+     */
+    public Collection<?> elementsOf(final PluralAttribute<?, ?, ?> attribute, final @Nullable Object entity) {
+        return read(attribute, entity) instanceof final Collection<?> elements ? elements : List.of();
+    }
+
+    private Map<String, String> labelsById(final Collection<?> elements, final PersistenceUnitUtil util) {
+        final Map<String, String> labels = new HashMap<>();
+
+        for (final Object element : elements) {
+            final Object identifier = util.getIdentifier(element);
+
+            if (identifier != null) {
+                final String label = registry.labelFor(element);
+
+                labels.put(String.valueOf(identifier), StringUtils.hasText(label) ? label : String.valueOf(identifier));
+            }
+        }
+
+        return labels;
+    }
+
+    private static @Nullable String display(final Map<String, String> labelsById) {
+        if (labelsById.isEmpty()) {
+            return null;
+        }
+
+        return String.join(", ", labelsById.values().stream().sorted(String.CASE_INSENSITIVE_ORDER).toList());
     }
 
     /**
@@ -255,7 +338,7 @@ public class AuditDiffer {
      * @param entity    a snapshot, or null
      * @return the field's value, or null
      */
-    public @Nullable Object read(final SingularAttribute<?, ?> attribute, final @Nullable Object entity) {
+    public @Nullable Object read(final Attribute<?, ?> attribute, final @Nullable Object entity) {
         if (entity == null) {
             return null;
         }

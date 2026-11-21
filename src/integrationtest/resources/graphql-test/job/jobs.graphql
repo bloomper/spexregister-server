@@ -1,0 +1,6 @@
+query jobs {
+    jobs {
+        id
+        status
+    }
+}

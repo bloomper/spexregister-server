@@ -26,7 +26,8 @@ extend type Query {
 
 extend type Mutation {
     """
-    ADMIN, with WRITE on the entity. Puts its audited fields back as they were in the revision. Not for base data. With
+    ADMIN, with WRITE on the entity. Puts its audited fields back as they were in the revision, a spexare's tags among
+    them; a tag that no longer exists is left out with a warning. Not for base data. With
     cascade, the records that belong to it are restored too: changed ones are put back, ones added since
     are removed and ones removed since are re-created under new ids. The entity must still exist. The reason given in
     the X-Audit-Reason header is kept with the new revision.
