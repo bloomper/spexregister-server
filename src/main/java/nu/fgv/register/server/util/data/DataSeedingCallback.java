@@ -21,12 +21,15 @@ import org.flywaydb.core.api.callback.Callback;
 import org.flywaydb.core.api.callback.Context;
 import org.flywaydb.core.api.callback.Event;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.Profiles;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.jdbc.datasource.SingleConnectionDataSource;
 import org.springframework.stereotype.Component;
 
 /**
- * After Flyway has migrated, imports the sample data and seeds a baseline audit history when asked to.
+ * After Flyway has migrated, imports the sample data and seeds a baseline audit history when asked to. The sample data
+ * replaces everything, so it is refused in the {@code production} profile.
  *
  * @author Anders Jacobsson
  * @since 2.0
@@ -39,15 +42,18 @@ public class DataSeedingCallback implements Callback {
     private final boolean importSampleData;
     private final SampleDataImporter sampleDataImporter;
     private final AuditDataSeeder auditDataSeeder;
+    private final Environment environment;
 
     public DataSeedingCallback(@Value("${spexregister.data.seed-audit-data:false}") final boolean seedAuditData,
                                @Value("${spexregister.data.import-sample-data:false}") final boolean importSampleData,
                                final SampleDataImporter sampleDataImporter,
-                               final AuditDataSeeder auditDataSeeder) {
+                               final AuditDataSeeder auditDataSeeder,
+                               final Environment environment) {
         this.seedAuditData = seedAuditData;
         this.importSampleData = importSampleData;
         this.sampleDataImporter = sampleDataImporter;
         this.auditDataSeeder = auditDataSeeder;
+        this.environment = environment;
     }
 
     @Override
@@ -63,6 +69,9 @@ public class DataSeedingCallback implements Callback {
     @Override
     public void handle(final Event event, final Context context) {
         if (importSampleData) {
+            if (environment.acceptsProfiles(Profiles.of("production"))) {
+                throw new IllegalStateException("Refusing to import sample data in the production profile");
+            }
             sampleDataImporter.importSampleData(context.getConnection());
         }
 
