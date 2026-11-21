@@ -114,7 +114,10 @@ management:
 
 server:
   port: 8080
-  forward-headers-strategy: framework
+  request:
+    header:
+      forwarded:
+        strategy: framework
 
 logging:
   file:
