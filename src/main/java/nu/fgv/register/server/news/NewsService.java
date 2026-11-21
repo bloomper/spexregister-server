@@ -19,6 +19,7 @@ package nu.fgv.register.server.news;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import nu.fgv.register.server.security.policy.Permission;
 import nu.fgv.register.server.security.policy.PermissionService;
 import nu.fgv.register.server.util.error.InternalErrorException;
@@ -232,6 +233,7 @@ public class NewsService {
      * {@code spexregister.jobs.publish-unpublish-news.cron-expression} schedule.
      */
     @Scheduled(cron = "${spexregister.jobs.publish-unpublish-news.cron-expression}")
+    @SchedulerLock(name = "publish-unpublish-news", lockAtMostFor = "PT10M")
     public void publishAndUnpublishNews() {
         runAsSystem(() -> tracker.run(MaintenanceJob.NEWS_PUBLISHING, () -> {
             log.info("Starting scheduled news publish/unpublish job");

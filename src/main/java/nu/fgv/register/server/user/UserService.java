@@ -21,6 +21,7 @@ import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.core.Response;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import nu.fgv.register.server.permission.PermissionGrantService;
 import nu.fgv.register.server.security.policy.Permission;
 import nu.fgv.register.server.security.policy.PermissionService;
@@ -755,6 +756,7 @@ public class UserService {
      * {@code spexregister.jobs.sync-users.cron-expression} schedule.
      */
     @Scheduled(cron = "${spexregister.jobs.sync-users.cron-expression}")
+    @SchedulerLock(name = "sync-users", lockAtMostFor = "PT30M")
     @Transactional(Transactional.TxType.NOT_SUPPORTED)
     public void scheduledSync() {
         runAsSystem(() -> tracker.run(MaintenanceJob.USER_SYNC, () -> {

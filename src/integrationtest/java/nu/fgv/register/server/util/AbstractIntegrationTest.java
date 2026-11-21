@@ -22,6 +22,7 @@ import com.google.common.cache.LoadingCache;
 import dasniko.testcontainers.keycloak.KeycloakContainer;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.ws.rs.core.Response;
+import net.javacrumbs.shedlock.support.StorageBasedLockProvider;
 import org.apache.http.client.utils.URIBuilder;
 import org.flywaydb.core.Flyway;
 import org.flywaydb.core.api.callback.Callback;
@@ -255,6 +256,8 @@ public abstract class AbstractIntegrationTest {
 
         flyway.clean();
         flyway.migrate();
+        // The scheduler locks remember which rows they have made; the table was just emptied
+        applicationContext.getBeansOfType(StorageBasedLockProvider.class).values().forEach(StorageBasedLockProvider::clearCache);
         Search.mapping(entityManagerFactory).scope(Object.class).workspace().purge();
         cacheManager.getCacheNames().forEach(name -> Objects.requireNonNull(cacheManager.getCache(name)).clear());
     }

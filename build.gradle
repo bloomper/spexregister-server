@@ -111,6 +111,8 @@ dependencies {
     implementation 'net.datafaker:datafaker:2.7.0'
     implementation 'com.graphql-java:graphql-java-extended-scalars:24.0'
     implementation 'io.micrometer:context-propagation:1.2.1'
+    implementation 'net.javacrumbs.shedlock:shedlock-spring:7.11.0'
+    implementation 'net.javacrumbs.shedlock:shedlock-provider-jdbc-template:7.11.0'
     implementation 'org.springframework.ai:spring-ai-starter-mcp-server-webmvc'
     implementation 'org.springaicommunity:mcp-server-security:0.1.14'
 
