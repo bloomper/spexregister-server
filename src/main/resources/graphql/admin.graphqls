@@ -61,6 +61,25 @@ type SyncSource {
     applied: Float!
     "Whether the source has not been reached for an hour."
     stale: Boolean!
+    "The latest changes that could not be applied and were left out, newest first, at most 50."
+    skipped: [SyncSkipped!]!
+}
+
+"""
+A change from a source that failed five pulls in a row and was left out, so that the changes after it are not held up.
+The copy lacks it until the record is changed again in the source, or the whole feed is pulled again.
+"""
+type SyncSkipped {
+    "Its place in the feed."
+    sequence: String!
+    "SPEX_CATEGORY, SPEX, TASK_CATEGORY, TASK or CHARACTER."
+    kind: String!
+    "The record's id in the source."
+    id: ID!
+    "UPSERT, RETIRE or MERGE."
+    change: String!
+    error: String!
+    skippedAt: Instant!
 }
 
 type SyncResult {

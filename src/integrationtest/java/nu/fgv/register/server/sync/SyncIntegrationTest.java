@@ -234,4 +234,37 @@ class SyncIntegrationTest extends AbstractIntegrationTest {
             throw new IllegalStateException(e);
         }
     }
+
+    @Test
+    void aChangeThatKeepsFailingIsSkippedAndTheFeedGoesOn() {
+        final String before = jdbcClient.sql("SELECT cursor_value FROM sync_source WHERE name = 'spexipedia'").query(String.class).optional().orElse(null);
+        final UUID category = UUID.fromString("00000000-0000-7000-8000-0000000000e1");
+        // A change without its record cannot be applied, however often it is tried
+        final FeedChange broken = new FeedChange("9001", "SPEX", UUID.fromString("00000000-0000-7000-8000-0000000000e2"), "UPSERT", null,
+                null, null, null, null, null);
+        final FeedChange fine = new FeedChange("9002", "SPEX_CATEGORY", category, "UPSERT", null,
+                new FeedChange.SpexCategory(category, "Efter den trasiga", "2026", null, false), null, null, null, null);
+        final FeedChange.Page page = new FeedChange.Page(List.of(broken, fine), "9002", false);
+
+        try {
+            for (int attempt = 1; attempt < SyncService.MAX_ATTEMPTS; attempt++) {
+                org.assertj.core.api.Assertions.assertThatThrownBy(() -> sync.applyPage(page, "9002")).isInstanceOf(RuntimeException.class);
+                assertThat(jdbcClient.sql("SELECT COUNT(*) FROM spex_category WHERE uuid = :id").param("id", category.toString())
+                        .query(Integer.class).single()).isZero();
+            }
+            sync.applyPage(page, "9002");
+
+            assertThat(jdbcClient.sql("SELECT cursor_value FROM sync_source WHERE name = 'spexipedia'").query(String.class).single()).isEqualTo("9002");
+            assertThat(jdbcClient.sql("SELECT name FROM spex_category WHERE uuid = :id").param("id", category.toString())
+                    .query(String.class).single()).isEqualTo("Efter den trasiga");
+            graphQl(obtainAdminAccessToken()).document("{ syncSources { skipped { sequence kind change id error } } }").execute()
+                    .path("syncSources[0].skipped[0].sequence").entity(String.class).isEqualTo("9001")
+                    .path("syncSources[0].skipped[0].kind").entity(String.class).isEqualTo("SPEX")
+                    .path("syncSources[0].skipped[0].change").entity(String.class).isEqualTo("UPSERT");
+        } finally {
+            jdbcClient.sql("DELETE FROM sync_skipped").update();
+            jdbcClient.sql("UPDATE sync_source SET cursor_value = :cursor, failing_sequence = NULL, failing_attempts = 0 WHERE name = 'spexipedia'")
+                    .param("cursor", before).update();
+        }
+    }
 }
