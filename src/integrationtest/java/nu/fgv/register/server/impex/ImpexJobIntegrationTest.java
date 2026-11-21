@@ -34,7 +34,6 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.simple.JdbcClient;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.jdbc.JdbcTestUtils;
 import org.springframework.test.web.servlet.client.RestTestClient;
 import org.springframework.web.client.ApiVersionInserter;
@@ -90,10 +89,6 @@ class ImpexJobIntegrationTest extends AbstractIntegrationTest {
         dto.setId(id);
         dto.setName(name);
         return dto;
-    }
-
-    private static void dropTestAuthenticationFromReactorContext() {
-        SecurityContextHolder.getContext().setAuthentication(null);
     }
 
     private static List<String> cellsInColumn(final Sheet sheet, final int column) {
@@ -220,8 +215,6 @@ class ImpexJobIntegrationTest extends AbstractIntegrationTest {
     }
 
     private Long startTagImport(final String token, final byte[] file) {
-        dropTestAuthenticationFromReactorContext();
-
         final Map<String, Object> reference = restTestClient
                 .post()
                 .uri("/tags?type=excel")
@@ -262,8 +255,6 @@ class ImpexJobIntegrationTest extends AbstractIntegrationTest {
     }
 
     private Long startTagExport(final String token) {
-        dropTestAuthenticationFromReactorContext();
-
         final Map<String, Object> reference = restTestClient
                 .get()
                 .uri("/tags?type=excel")

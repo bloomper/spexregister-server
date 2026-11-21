@@ -63,6 +63,8 @@ spring:
   threads:
     virtual:
       enabled: true
+  reactor:
+    context-propagation: auto
   graphql:
     schema:
       printer:
