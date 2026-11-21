@@ -20,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 import nu.fgv.register.server.impex.model.JobDto;
 import nu.fgv.register.server.impex.model.JobStatusDto;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditor;
+import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
 import org.springframework.core.io.Resource;
 import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
@@ -51,14 +52,14 @@ public class JobApi {
     private final JobService service;
 
     @GetMapping("/{id}/status")
-    @RequiresAdminOrEditor
+    @RequiresAdminOrEditorOrUser
     public Mono<ResponseEntity<JobStatusDto>> status(@PathVariable final Long id) {
         return service.getJobStatus(id)
                 .map(ResponseEntity::ok);
     }
 
     @GetMapping("/{id}")
-    @RequiresAdminOrEditor
+    @RequiresAdminOrEditorOrUser
     public Mono<ResponseEntity<JobDto>> retrieve(@PathVariable final Long id) {
         return service.getJob(id)
                 .map(ResponseEntity::ok);
@@ -79,13 +80,13 @@ public class JobApi {
     }
 
     @GetMapping(path = "/{id}/progress", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    @RequiresAdminOrEditor
+    @RequiresAdminOrEditorOrUser
     public Flux<JobStatusDto> progress(@PathVariable final Long id) {
         return service.getJobProgress(id);
     }
 
     @GetMapping("/{id}/results")
-    @RequiresAdminOrEditor
+    @RequiresAdminOrEditorOrUser
     public Mono<ResponseEntity<Resource>> results(@PathVariable final Long id) {
         return service.getJobOutputFile(id)
                 .map(resource -> ResponseEntity.ok()

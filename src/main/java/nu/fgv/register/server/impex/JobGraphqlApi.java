@@ -20,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 import nu.fgv.register.server.impex.model.JobDto;
 import nu.fgv.register.server.impex.model.JobStatusDto;
 import nu.fgv.register.server.util.security.RequiresAdminOrEditor;
+import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUser;
 import nu.fgv.register.server.util.security.SecurityUtil;
 import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.MutationMapping;
@@ -49,13 +50,13 @@ public class JobGraphqlApi {
     private final JobService jobService;
 
     @QueryMapping("jobStatus")
-    @RequiresAdminOrEditor
+    @RequiresAdminOrEditorOrUser
     public Mono<JobStatusDto> status(@Argument final Long id) {
         return jobService.getJobStatus(id);
     }
 
     @QueryMapping("job")
-    @RequiresAdminOrEditor
+    @RequiresAdminOrEditorOrUser
     public Mono<JobDto> retrieve(@Argument final Long id) {
         return jobService.getJob(id);
     }
@@ -76,15 +77,18 @@ public class JobGraphqlApi {
     public Flux<JobStatusDto> progress(@Argument final Long id) {
         return ReactiveSecurityContextHolder.getContext()
                 .flatMap(context -> Mono.justOrEmpty(context.getAuthentication()))
-                .filter(this::hasRequiredAdminOrEditor)
+                .filter(this::mayFollowOwnJobs)
                 .switchIfEmpty(Mono.error(new AccessDeniedException("Access denied")))
                 .flatMapMany(_ -> jobService.getJobProgress(id));
     }
 
-    private boolean hasRequiredAdminOrEditor(final Authentication auth) {
+    /**
+     * Members too: the export of their own data is a job, and the service gives a job only to who started it.
+     */
+    private boolean mayFollowOwnJobs(final Authentication auth) {
         return auth.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .filter(Objects::nonNull)
-                .anyMatch(role -> role.equals(SecurityUtil.ROLE_ADMIN) || role.equals(SecurityUtil.ROLE_EDITOR));
+                .anyMatch(SecurityUtil.ROLES::contains);
     }
 }

@@ -1,7 +1,7 @@
 extend type Query {
-    "ADMIN or EDITOR. One of the caller's own jobs."
+    "ADMIN, EDITOR or USER. One of the caller's own jobs; a member has the export of their own data."
     jobStatus(id: ID!): JobStatus
-    "ADMIN or EDITOR. One of the caller's own jobs, with an import's result."
+    "ADMIN, EDITOR or USER. One of the caller's own jobs, with an import's result."
     job(id: ID!): Job
     "ADMIN or EDITOR. The caller's own jobs, newest first."
     jobs: [Job]
@@ -13,7 +13,7 @@ extend type Mutation {
 }
 
 extend type Subscription {
-    "ADMIN or EDITOR. The status of one of the caller's own jobs as it starts and ends, the latest one first."
+    "ADMIN, EDITOR or USER. The status of one of the caller's own jobs as it starts and ends, the latest one first."
     jobProgress(id: ID!): JobStatus
 }
 
