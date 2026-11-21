@@ -36,6 +36,7 @@ import org.jeasy.random.EasyRandom;
 import org.jeasy.random.EasyRandomParameters;
 import org.jeasy.random.randomizers.EmailRandomizer;
 import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -114,6 +115,7 @@ class AuditCascadeIntegrationTest extends AbstractIntegrationTest {
                 .apiVersionInserter(ApiVersionInserter.useHeader("X-API-Version"))
                 .build();
 
+        jdbcClient.sql("UPDATE spexare SET partner_id = NULL").update();
         JdbcTestUtils.deleteFromTables(jdbcClient, "address", "type", "spexare",
                 "address_audit", "type_audit", "spexare_audit", "revchanges", "revinfo");
     }
@@ -331,6 +333,134 @@ class AuditCascadeIntegrationTest extends AbstractIntegrationTest {
 
             assertThat(remaining).hasSize(2);
             assertThat(remaining).extracting(Address::getUuid).containsExactlyInAnyOrder(kept.getUuid(), removed.getUuid());
+        }
+    }
+
+    @Nested
+    @DisplayName("Cascade restore of a record whose reference is gone")
+    class MissingReferenceTests {
+
+        @Test
+        void should_leave_out_a_removed_child_whose_required_reference_no_longer_exists() {
+            final var kept = persistType();
+            final var gone = persistType();
+            final var spexare = persistSpexare();
+
+            final var remaining = persistAddress(kept, spexare);
+            final var removed = persistAddress(gone, spexare);
+
+            final long target = latestRevision();
+
+            addressRepository.delete(removed);
+            typeRepository.delete(gone);
+
+            final RestoreResultDto result = Objects.requireNonNull(
+                    restTestClient
+                            .post()
+                            .uri("/{type}/{id}/{revision}/restore?cascade=true", "SPEXARE", spexare.getUuid(), target)
+                            .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                            .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                            .apiVersion("1.0")
+                            .exchange()
+                            .expectStatus().isOk()
+                            .expectBody(RestoreResultDto.class)
+                            .returnResult()
+                            .getResponseBody());
+
+            assertThat(result.created()).isZero();
+            assertThat(result.warnings()).extracting(RestoreWarningDto::code).containsExactly("REFERENCE_MISSING");
+            assertThat(addressRepository.findAll()).extracting(Address::getUuid).containsExactly(remaining.getUuid());
+        }
+    }
+
+    @Nested
+    @DisplayName("Restoring a partner")
+    class PartnerRestoreTests {
+
+        private void link(final Spexare one, final Spexare other) {
+            one.setPartner(other);
+            other.setPartner(one);
+            spexareRepository.save(one);
+            spexareRepository.save(other);
+        }
+
+        private Spexare reloaded(final Spexare spexare) {
+            return spexareRepository.findById(spexare.getId()).orElseThrow();
+        }
+
+        private @Nullable Long partnerOf(final Spexare spexare) {
+            return jdbcClient.sql("SELECT partner_id FROM spexare WHERE id = :id").param("id", spexare.getId()).query(Long.class).optional().orElse(null);
+        }
+
+        @Test
+        void should_link_the_partner_from_both_sides_and_free_the_one_who_lost_theirs() {
+            final var spexare = persistSpexare();
+            final var former = persistSpexare();
+            final var later = persistSpexare();
+
+            link(spexare, former);
+
+            final long target = latestRevision();
+
+            final var unlinked = reloaded(spexare);
+            final var freed = reloaded(former);
+
+            unlinked.setPartner(null);
+            freed.setPartner(null);
+            spexareRepository.save(unlinked);
+            spexareRepository.save(freed);
+            link(reloaded(spexare), later);
+
+            final RestoreResultDto result = Objects.requireNonNull(
+                    restTestClient
+                            .post()
+                            .uri("/{type}/{id}/{revision}/restore", "SPEXARE", spexare.getUuid(), target)
+                            .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                            .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                            .apiVersion("1.0")
+                            .exchange()
+                            .expectStatus().isOk()
+                            .expectBody(RestoreResultDto.class)
+                            .returnResult()
+                            .getResponseBody());
+
+            assertThat(partnerOf(spexare)).isEqualTo(former.getId());
+            assertThat(partnerOf(former)).isEqualTo(spexare.getId());
+            assertThat(partnerOf(later)).isNull();
+            assertThat(result.updated()).isEqualTo(3);
+            assertThat(result.warnings()).extracting(RestoreWarningDto::code).containsExactly("PARTNER_UNLINKED", "PARTNER_LINKED");
+        }
+
+        @Test
+        void should_leave_other_spexare_alone_when_the_partner_is_the_same() {
+            final var spexare = persistSpexare();
+            final var partner = persistSpexare();
+
+            link(spexare, partner);
+
+            final long target = latestRevision();
+            final var renamed = reloaded(spexare);
+
+            renamed.setNickName("Annat");
+            spexareRepository.save(renamed);
+
+            final RestoreResultDto result = Objects.requireNonNull(
+                    restTestClient
+                            .post()
+                            .uri("/{type}/{id}/{revision}/restore", "SPEXARE", spexare.getUuid(), target)
+                            .header(HttpHeaders.AUTHORIZATION, obtainAdminAccessToken())
+                            .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                            .apiVersion("1.0")
+                            .exchange()
+                            .expectStatus().isOk()
+                            .expectBody(RestoreResultDto.class)
+                            .returnResult()
+                            .getResponseBody());
+
+            assertThat(partnerOf(spexare)).isEqualTo(partner.getId());
+            assertThat(partnerOf(partner)).isEqualTo(spexare.getId());
+            assertThat(result.updated()).isEqualTo(1);
+            assertThat(result.warnings()).isEmpty();
         }
     }
 }
