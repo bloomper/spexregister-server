@@ -26,8 +26,7 @@ import org.springframework.format.datetime.standard.DateTimeFormatterRegistrar;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 import org.springframework.web.accept.SemanticApiVersionParser;
-import org.springframework.web.client.RestTemplate;
-import org.springframework.web.filter.ForwardedHeaderFilter;
+import org.springframework.web.client.RestClient;
 import org.springframework.web.filter.ShallowEtagHeaderFilter;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.config.annotation.ApiVersionConfigurer;
@@ -44,8 +43,9 @@ import java.security.cert.X509Certificate;
 import java.util.Locale;
 
 /**
- * Web MVC: ETags, forwarded headers, the messages and validator, the locale from {@code Accept-Language} among the
- * languages offered, and versioning of the REST API by the {@code X-API-Version} header.
+ * Web MVC: ETags, the messages and validator, the locale from {@code Accept-Language} among the languages offered, and
+ * versioning of the REST API by the {@code X-API-Version} header. Forwarded headers are Spring Boot's
+ * ({@code server.request.header.forwarded.*}).
  *
  * @author Anders Jacobsson
  * @since 2.0
@@ -73,12 +73,6 @@ public class WebConfig implements WebMvcConfigurer {
     @Bean
     public ShallowEtagHeaderFilter shallowEtagHeaderFilter() {
         return new ShallowEtagHeaderFilter();
-    }
-
-    @Bean
-    @Profile("!test & !integrationtest")
-    public ForwardedHeaderFilter forwardedHeaderFilter() {
-        return new ForwardedHeaderFilter();
     }
 
     @Bean
@@ -116,9 +110,13 @@ public class WebConfig implements WebMvcConfigurer {
         return resolver;
     }
 
+    /**
+     * Local use only: trusts any certificate (Caddy's internal CA at {@code *.fgv.local.nu:8443}), also as the JVM's
+     * default for {@link HttpsURLConnection}, which Spring Security's own clients use.
+     */
     @Bean
     @Profile("local")
-    public RestTemplate restTemplate() throws Exception {
+    public RestClient restClient() throws Exception {
         final TrustManager[] trustAllCerts = new TrustManager[]{
                 new X509TrustManager() {
                     public X509Certificate[] getAcceptedIssuers() {
@@ -138,7 +136,7 @@ public class WebConfig implements WebMvcConfigurer {
         sc.init(null, trustAllCerts, new java.security.SecureRandom());
         HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
 
-        return new RestTemplate(new SimpleClientHttpRequestFactory() {
+        return RestClient.builder().requestFactory(new SimpleClientHttpRequestFactory() {
             @Override
             protected void prepareConnection(final HttpURLConnection connection, final String httpMethod)
                     throws java.io.IOException {
@@ -148,6 +146,6 @@ public class WebConfig implements WebMvcConfigurer {
                 }
                 super.prepareConnection(connection, httpMethod);
             }
-        });
+        }).build();
     }
 }
