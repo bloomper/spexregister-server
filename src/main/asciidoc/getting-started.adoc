@@ -140,6 +140,17 @@ When the ``spexregister-api`` container isn't running, Caddy forwards ``https://
 
 The same setup for staging and production is in https://github.com/bloomper/spexregister-deploy[spexregister-deploy] and fgv-infra-deploy.
 
+[[local_folders]]
+=== Local folders
+
+Docker Compose keeps everything on the host, under ``.docker``, one folder per service:
+
+* ``.docker/mysql``: the database and its error log
+* ``.docker/api``: the API's logs, search index (``index_data``) and import and export files (``impex_data``)
+* ``.docker/secrets``: the secrets, see <<configuration>>
+
+An API started from the IDE or with ``./gradlew bootRun`` keeps its files in ``./data`` instead.
+
 [[sample_data]]
 == Sample data
 

@@ -23,8 +23,8 @@ services:
     #ports:
     #  - "3306:3306"
     volumes:
-      - fgv_spexregister_mysql_data:/var/lib/mysql
-      - fgv_spexregister_mysql_log:/var/log/mysql
+      - ./.docker/mysql/data:/var/lib/mysql
+      - ./.docker/mysql/log:/var/log/mysql
     secrets:
       - FGV_SPEXREGISTER_MYSQL_ROOT_PASSWORD
       - FGV_SPEXREGISTER_MYSQL_USER_PASSWORD
@@ -37,6 +37,7 @@ services:
       SPRING_DATASOURCE_URL: jdbc:mysql://spexregister-mysql/${FGV_SPEXREGISTER_MYSQL_DATABASE}
       SPRING_DATASOURCE_USERNAME: ${FGV_SPEXREGISTER_MYSQL_USER}
       SPRING_JPA_PROPERTIES_HIBERNATE_SEARCH_BACKEND_DIRECTORY_ROOT: /data/index_data
+      SPEXREGISTER_IMPEX_STORAGE_PATH: /data/impex_data
       LOGGING_FILE_PATH: /data/log_data
       SERVER_REQUEST_HEADER_FORWARDED_STRATEGY: web-server
       API_BASE_URL: https://api.register.fgv.local.nu:8443/api
@@ -64,9 +65,9 @@ services:
       spexregister-mysql:
         condition: service_healthy
     volumes:
-      - fgv_spexregister_api_log:/data/log_data
-      - fgv_spexregister_api_index:/data/index_data
-      - fgv_spexregister_api_impex:/data/impex_data
+      - ${API_DATA:-./.docker/api}/log_data:/data/log_data
+      - ${API_DATA:-./.docker/api}/index_data:/data/index_data
+      - ${API_DATA:-./.docker/api}/impex_data:/data/impex_data
     networks:
       - default
       - fgv
@@ -76,38 +77,6 @@ services:
       - API_KEYCLOAK_ADMIN_CLIENT_SECRET
       - API_KEYCLOAK_SERVICE_CLIENT_SECRET
       - API_SECRET_KEY
-
-volumes:
-  fgv_spexregister_mysql_data:
-    driver: local
-    driver_opts:
-      type: none
-      device: .docker/fgv-spexregister-mysql/data
-      o: bind
-  fgv_spexregister_mysql_log:
-    driver: local
-    driver_opts:
-      type: none
-      device: .docker/fgv-spexregister-mysql/log
-      o: bind
-  fgv_spexregister_api_log:
-    driver: local
-    driver_opts:
-      type: none
-      device: .docker/fgv-spexregister-api/log_data
-      o: bind
-  fgv_spexregister_api_index:
-    driver: local
-    driver_opts:
-      type: none
-      device: .docker/fgv-spexregister-api/index_data
-      o: bind
-  fgv_spexregister_api_impex:
-    driver: local
-    driver_opts:
-      type: none
-      device: .docker/fgv-spexregister-api/impex_data
-      o: bind
 
 networks:
   fgv:
