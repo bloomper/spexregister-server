@@ -7,11 +7,11 @@ services:
     command: --log-error=/var/log/mysql/error.log
     environment:
       MYSQL_HOST: localhost
-      MYSQL_DATABASE: ${FGV_SPEXREGISTER_MYSQL_DATABASE}
-      MYSQL_ROOT_USER: ${FGV_SPEXREGISTER_MYSQL_ROOT_USER}
-      MYSQL_ROOT_PASSWORD_FILE: /run/secrets/FGV_SPEXREGISTER_MYSQL_ROOT_PASSWORD
-      MYSQL_USER: ${FGV_SPEXREGISTER_MYSQL_USER}
-      MYSQL_PASSWORD_FILE: /run/secrets/FGV_SPEXREGISTER_MYSQL_USER_PASSWORD
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_ROOT_USER: ${MYSQL_ROOT_USER}
+      MYSQL_ROOT_PASSWORD_FILE: /run/secrets/MYSQL_ROOT_PASSWORD
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD_FILE: /run/secrets/MYSQL_USER_PASSWORD
     healthcheck:
       test: [ "CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "--silent" ]
       interval: 10s
@@ -26,16 +26,16 @@ services:
       - ./.docker/mysql/data:/var/lib/mysql
       - ./.docker/mysql/log:/var/log/mysql
     secrets:
-      - FGV_SPEXREGISTER_MYSQL_ROOT_PASSWORD
-      - FGV_SPEXREGISTER_MYSQL_USER_PASSWORD
+      - MYSQL_ROOT_PASSWORD
+      - MYSQL_USER_PASSWORD
 
   spexregister-api:
     image: 'bloomper/spexregister-server:develop'
     #platform: linux/arm64
     environment:
       SPRING_PROFILES_ACTIVE: local
-      SPRING_DATASOURCE_URL: jdbc:mysql://spexregister-mysql/${FGV_SPEXREGISTER_MYSQL_DATABASE}
-      SPRING_DATASOURCE_USERNAME: ${FGV_SPEXREGISTER_MYSQL_USER}
+      SPRING_DATASOURCE_URL: jdbc:mysql://spexregister-mysql/${MYSQL_DATABASE}
+      SPRING_DATASOURCE_USERNAME: ${MYSQL_USER}
       SPRING_JPA_PROPERTIES_HIBERNATE_SEARCH_BACKEND_DIRECTORY_ROOT: /data/index_data
       SPEXREGISTER_IMPEX_STORAGE_PATH: /data/impex_data
       LOGGING_FILE_PATH: /data/log_data
@@ -72,7 +72,7 @@ services:
       - default
       - fgv
     secrets:
-      - source: FGV_SPEXREGISTER_MYSQL_USER_PASSWORD
+      - source: MYSQL_USER_PASSWORD
         target: MYSQL_API_USER_PASSWORD
       - API_KEYCLOAK_ADMIN_CLIENT_SECRET
       - API_KEYCLOAK_SERVICE_CLIENT_SECRET
@@ -84,10 +84,10 @@ networks:
     external: true
 
 secrets:
-  FGV_SPEXREGISTER_MYSQL_ROOT_PASSWORD:
-    file: .docker/secrets/FGV_SPEXREGISTER_MYSQL_ROOT_PASSWORD
-  FGV_SPEXREGISTER_MYSQL_USER_PASSWORD:
-    file: .docker/secrets/FGV_SPEXREGISTER_MYSQL_USER_PASSWORD
+  MYSQL_ROOT_PASSWORD:
+    file: .docker/secrets/MYSQL_ROOT_PASSWORD
+  MYSQL_USER_PASSWORD:
+    file: .docker/secrets/MYSQL_USER_PASSWORD
   API_KEYCLOAK_ADMIN_CLIENT_SECRET:
     file: .docker/secrets/API_KEYCLOAK_ADMIN_CLIENT_SECRET
   API_KEYCLOAK_SERVICE_CLIENT_SECRET:

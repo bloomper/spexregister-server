@@ -72,15 +72,15 @@ $ ./scripts/configure-keycloak.sh    # the Keycloak client secrets, read from th
 
 Both keep the values that are already set, so they can be run again, and tell git to leave your values alone so they are never committed (``git update-index --skip-worktree .docker/secrets/*``).
 The database passwords take effect only when the databases are created, i.e. with empty data folders.
-To set a value by hand, write it without a trailing newline, e.g. ``printf '%s' 'verysecret' > .docker/secrets/FGV_SPEXREGISTER_MYSQL_ROOT_PASSWORD``.
+To set a value by hand, write it without a trailing newline, e.g. ``printf '%s' 'verysecret' > .docker/secrets/MYSQL_ROOT_PASSWORD``.
 
 To see a changed placeholder after a pull, undo it with ``git update-index --no-skip-worktree .docker/secrets/*``.
 
 |===
 |Parameter|Purpose|Comment|Example value
 
-|FGV_SPEXREGISTER_MYSQL_ROOT_PASSWORD|The password for the root user of Spexregister Server's database||verysecret
-|FGV_SPEXREGISTER_MYSQL_USER_PASSWORD|The password for the user of Spexregister Server's database||secret
+|MYSQL_ROOT_PASSWORD|The password for the root user of Spexregister Server's database||verysecret
+|MYSQL_USER_PASSWORD|The password for the user of Spexregister Server's database||secret
 |API_KEYCLOAK_ADMIN_CLIENT_SECRET|The client secret of Spexregister Server's Keycloak admin client|Must match the value in ``realm/fgv.json`` in https://github.com/bloomper/fgv-keycloak[fgv-keycloak], search for ``fgv-admin`` (if not changed in ``.env``) and pick the value for ``secret`` in the same section|tPE9jFHcjpvKT64v6fpZyvUbbRQI5P5Q
 |API_SECRET_KEY|The key used for encrypting sensitive data|A 32 character long string that can contain alphanumeric characters and special characters|j4{}8@4{eRrz1athvM7C_*{7XM}NP=J3
 
@@ -91,9 +91,9 @@ There are also configuration parameters in ``.env`` that can be tweaked if so de
 |===
 |Parameter|Purpose|Default value
 
-|FGV_SPEXREGISTER_MYSQL_DATABASE|The name of the database used by Spexregister Server|spexregister
-|FGV_SPEXREGISTER_MYSQL_ROOT_USER|The root user of Spexregister Server's database|root
-|FGV_SPEXREGISTER_MYSQL_USER|The user of Spexregister Server's database|spexregister
+|MYSQL_DATABASE|The name of the database used by Spexregister Server|spexregister
+|MYSQL_ROOT_USER|The root user of Spexregister Server's database|root
+|MYSQL_USER|The user of Spexregister Server's database|spexregister
 |API_KEYCLOAK_REALM|The Keycloak realm of Spexregister Server|fgv
 |API_KEYCLOAK_ADMIN_CLIENT_ID|The Keycloak admin client id of Spexregister Server|fgv-admin
 |API_KEYCLOAK_CLIENT_CLIENT_ID|The Keycloak client id of Spexregister Server|spexregister
