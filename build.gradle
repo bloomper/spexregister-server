@@ -97,7 +97,7 @@ dependencies {
     implementation 'org.apache.commons:commons-lang3:3.22.0'
     implementation 'org.apache.poi:poi:6.0.0'
     implementation 'org.apache.poi:poi-ooxml:6.0.0'
-    implementation 'com.github.librepdf:openpdf:3.0.5'
+    implementation 'com.github.librepdf:openpdf:3.0.6'
     implementation 'org.flywaydb:flyway-core'
     implementation 'org.flywaydb:flyway-mysql'
     implementation 'io.hypersistence:hypersistence-utils-hibernate-73:3.16.0'
@@ -140,7 +140,7 @@ dependencies {
     integrationTestImplementation 'org.springframework.boot:spring-boot-testcontainers'
     integrationTestImplementation 'org.testcontainers:testcontainers-junit-jupiter'
     integrationTestImplementation 'org.testcontainers:testcontainers-mysql'
-    integrationTestImplementation 'com.github.dasniko:testcontainers-keycloak:4.4.0'
+    integrationTestImplementation 'com.github.dasniko:testcontainers-keycloak:4.4.1'
     //integrationTestImplementation 'org.opensearch:opensearch-testcontainers:4.1.0'
     integrationTestImplementation 'io.github.dvgaba:easy-random-randomizers:7.1.1'
 
