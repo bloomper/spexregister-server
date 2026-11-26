@@ -70,6 +70,7 @@ class MembershipApiTest extends AbstractApiTest {
     private static final ResponseFieldsSnippet responseFields = auditResponseFields.and(
             fieldWithPath("id").description("The id of the membership"),
             fieldWithPath("year").description("The year of the membership"),
+            fieldWithPath("lifetime").description("Whether it is a life membership, which counts in its year and every year after it"),
             linksSubsection
     ).andWithPrefix("type.", Stream.of(typeResponseFieldDescriptors, auditResponseFieldsDescriptors).flatMap(Collection::stream).toList());
     private final LinksSnippet links = baseLinks.and(
@@ -109,6 +110,7 @@ class MembershipApiTest extends AbstractApiTest {
                                         subsectionWithPath("_embedded.memberships[]").description("The elements"),
                                         fieldWithPath("_embedded.memberships[].id").description("The id of the membership"),
                                         fieldWithPath("_embedded.memberships[].year").description("The year of the membership"),
+                                        fieldWithPath("_embedded.memberships[].lifetime").description("Whether it is a life membership"),
                                         fieldWithPath("_embedded.memberships[].type").description("The type of the membership"),
                                         fieldWithPath("_embedded.memberships[].createdBy").description("Who created the membership"),
                                         fieldWithPath("_embedded.memberships[].createdAt").description("When was the membership created"),

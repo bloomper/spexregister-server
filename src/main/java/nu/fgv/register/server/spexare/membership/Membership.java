@@ -94,6 +94,12 @@ public class Membership extends AbstractAuditable implements Serializable {
     @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     private Type type;
 
+    /**
+     * A life membership counts in its year and every year after it. It is stored once, with its first year.
+     */
+    @Column(name = "lifetime", nullable = false)
+    private boolean lifetime;
+
     @ManyToOne
     @AssociationInverseSide(
             extraction = @ContainerExtraction(BuiltinContainerExtractors.ARRAY_OBJECT),

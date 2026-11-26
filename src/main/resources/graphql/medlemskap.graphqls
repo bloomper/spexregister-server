@@ -1,0 +1,45 @@
+# The MEMBERSHIP role: Medlemskap's service account reads the spexare it needs and links users to them. Names and contact
+# details are read when needed and never kept there (fgv-membership-spec, section 9).
+
+extend type Query {
+    "MEMBERSHIP. Spexare by id, in the given order; unknown ids are left out. At most 2000."
+    medlemskapSpexareByIds(ids: [ID!]!): [MedlemskapSpexare!]!
+    "MEMBERSHIP. Spexare whose name or nickname contains every word. At most 50."
+    medlemskapSpexareSearch(q: String!, first: Int = 25): [MedlemskapSpexare!]!
+    "MEMBERSHIP. The spexare a Keycloak user is linked to, or null."
+    medlemskapSpexareForUser(userId: ID!): MedlemskapSpexare
+    "MEMBERSHIP. FGV memberships as Spexregister has them, oldest spexare first, for checking that the copy and Medlemskap agree."
+    medlemskapFgvMemberships(after: ID, first: Int = 500): [MedlemskapMembership!]!
+}
+
+extend type Mutation {
+    "MEMBERSHIP. Links a Keycloak user to a spexare that nobody else is linked to; replaces the user's earlier link."
+    medlemskapLinkUser(userId: ID!, spexareId: ID!): MedlemskapSpexare!
+}
+
+type MedlemskapSpexare {
+    id: ID!
+    firstName: String!
+    lastName: String!
+    nickname: String
+    "The first email address found, home addresses first."
+    email: String
+    "The first postal address found, home addresses first."
+    postalAddress: MedlemskapPostalAddress
+    deceased: Boolean!
+}
+
+type MedlemskapPostalAddress {
+    streetAddress: String
+    postalCode: String
+    city: String
+    country: String
+}
+
+type MedlemskapMembership {
+    id: ID!
+    spexareId: ID!
+    type: String!
+    year: Int!
+    lifetime: Boolean!
+}

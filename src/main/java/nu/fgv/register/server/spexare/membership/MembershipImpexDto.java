@@ -60,4 +60,8 @@ public class MembershipImpexDto extends AbstractAuditableImpexDto<MembershipImpe
     @ExcelCell(header = "common.impex.type.label.columnName", position = 5)
     private String typeLabel;
 
+    @JsonProperty("lifetime")
+    @ExcelCell(header = "membership.impex.lifetime.columnName", position = 6)
+    private boolean lifetime;
+
 }

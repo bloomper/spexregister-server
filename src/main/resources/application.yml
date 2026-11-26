@@ -142,6 +142,10 @@ spexregister:
       cron-expression: 0 */5 * * * ? # Every 5 minutes
     sync-spexipedia:
       cron-expression: 30 */5 * * * ? # Every 5 minutes, and when Spexipedia notifies
+    sync-medlemskap:
+      cron-expression: 45 */5 * * * ? # Every 5 minutes, and when Medlemskap notifies
+    notify-medlemskap:
+      cron-expression: 15 */5 * * * ? # Retries telling Medlemskap about deleted spexare
     job-cleanup:
       cron-expression: 0 0 3 * * ? # Every day at 03:00
       purge-threshold-in-days: 7
@@ -169,6 +173,14 @@ spexregister:
     enabled: ${API_SPEXIPEDIA_SYNC_ENABLED:true}
     graphql-url: ${API_SPEXIPEDIA_GRAPHQL_URL:https://api.spexipedia.fgv.local.nu:8443/api/graphql}
     web-url: ${SPEXIPEDIA_URL:http://localhost:3006}
+  medlemskap:
+    # FGV memberships come from Medlemskap's change feed; off only for tests that have no Medlemskap
+    enabled: ${API_MEDLEMSKAP_SYNC_ENABLED:true}
+    graphql-url: ${API_MEDLEMSKAP_GRAPHQL_URL:https://api.membership.fgv.local.nu:8443/api/graphql}
+    api-url: ${API_MEDLEMSKAP_API_URL:https://api.membership.fgv.local.nu:8443}
+    web-url: ${MEMBERSHIP_URL:http://localhost:3007}
+    # Membership types that are Medlemskap's: read-only here, written by the sync
+    internal-types: FGV
   security:
     authorized-parties: ${API_SECURITY_AUTHORIZED_PARTIES:${spexregister.keycloak.client.client-id}}
   mcp:

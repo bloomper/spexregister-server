@@ -40,7 +40,7 @@ import static org.springframework.security.oauth2.client.web.client.RequestAttri
  * @since 2.0
  */
 @Configuration
-@EnableConfigurationProperties(SyncProperties.class)
+@EnableConfigurationProperties({SyncProperties.class, MedlemskapProperties.class})
 public class SyncConfig {
 
     public static final String REGISTRATION_ID = "fgv-spexregister-service";

@@ -52,11 +52,15 @@ public class MembershipDto extends AbstractAuditableDto<MembershipDto> {
     @JsonProperty("type")
     private TypeDto type;
 
+    @JsonProperty("lifetime")
+    private boolean lifetime;
+
     @Builder
     public MembershipDto(
             final UUID id,
             final String year,
             final TypeDto type,
+            final Boolean lifetime,
             final String createdBy,
             final Instant createdAt,
             final String lastModifiedBy,
@@ -66,5 +70,6 @@ public class MembershipDto extends AbstractAuditableDto<MembershipDto> {
         this.id = id;
         this.year = year;
         this.type = type;
+        this.lifetime = Boolean.TRUE.equals(lifetime);
     }
 }

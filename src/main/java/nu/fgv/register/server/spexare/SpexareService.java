@@ -49,6 +49,7 @@ import nu.fgv.register.server.util.security.RequiresAdminOrEditorOrUserOrRevival
 import org.hibernate.search.engine.search.aggregation.AggregationKey;
 import org.hibernate.search.engine.search.query.SearchResult;
 import org.hibernate.search.util.common.SearchException;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.data.domain.Page;
@@ -111,6 +112,7 @@ public class SpexareService {
     private final PermissionService permissionService;
     private final PermissionGrantService permissionGrantService;
     private final MessageSource messageSource;
+    private final ApplicationEventPublisher events;
 
     private static Deque<?> parseFilter(final String filter) {
         final Deque<?> parsed = FilterParser.parse(filter);
@@ -404,6 +406,7 @@ public class SpexareService {
                     .ifPresent(spexare -> {
                         permissionGrantService.deleteBySpexare(spexare);
                         repository.delete(spexare);
+                        events.publishEvent(new SpexareDeletedEvent(id));
                     });
         } else {
             throw new ResourceNotFoundException(Spexare.class, id);

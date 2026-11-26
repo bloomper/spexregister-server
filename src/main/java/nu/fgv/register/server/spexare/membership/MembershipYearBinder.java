@@ -17,12 +17,32 @@
 package nu.fgv.register.server.spexare.membership;
 
 import nu.fgv.register.server.util.search.StringTypeBinder;
+import org.hibernate.search.mapper.pojo.bridge.binding.TypeBindingContext;
+
+import java.time.Year;
+import java.util.Collection;
+import java.util.stream.IntStream;
 
 /**
- * Indexes a membership's association and year, for the {@code memberships} facet.
+ * Indexes a membership's association and year, for the {@code memberships} facet. A life membership counts in its first
+ * year and every year after it, up to this year (the search index is rebuilt every few hours, so the new year follows).
  */
 public class MembershipYearBinder extends StringTypeBinder<Membership> {
     public MembershipYearBinder() {
-        super(Membership.class, Membership::getType, Membership::getYear, "year", true);
+        super(Membership.class, Membership::getType, "year", true, MembershipYearBinder::years);
+    }
+
+    @Override
+    protected void extraDependencies(final TypeBindingContext context) {
+        context.dependencies().use("lifetime");
+    }
+
+    static Collection<String> years(final Membership membership) {
+        final int first = Integer.parseInt(membership.getYear());
+
+        if (!membership.isLifetime() || first >= Year.now().getValue()) {
+            return java.util.List.of(membership.getYear());
+        }
+        return IntStream.rangeClosed(first, Year.now().getValue()).mapToObj(Integer::toString).toList();
     }
 }

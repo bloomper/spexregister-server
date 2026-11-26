@@ -21,6 +21,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nu.fgv.register.server.security.policy.PermissionService;
 import nu.fgv.register.server.settings.Type;
+import nu.fgv.register.server.sync.MedlemskapProperties;
+import nu.fgv.register.server.util.error.BadRequestException;
 import nu.fgv.register.server.settings.TypeRepository;
 import nu.fgv.register.server.settings.TypeService;
 import nu.fgv.register.server.settings.TypeType;
@@ -76,6 +78,7 @@ public class MembershipService {
     private final TypeRepository typeRepository;
     private final TypeService typeService;
     private final PermissionService permissionService;
+    private final MedlemskapProperties medlemskap;
 
     /**
      * @param ids spexare ids
@@ -201,6 +204,7 @@ public class MembershipService {
      */
     @RequiresAdminOrEditorOrUserOrRevival
     public MembershipDto create(final UUID spexareId, final String typeId, final MembershipCreateDto dto) {
+        refuseInternal(typeId);
         if (doSpexareAndTypeExist(spexareId, typeId)) {
             return typeRepository
                     .findById(typeId)
@@ -230,6 +234,7 @@ public class MembershipService {
      */
     @RequiresAdminOrEditorOrUser
     public void deleteById(final UUID spexareId, final String typeId, final UUID id) {
+        refuseInternal(typeId);
         if (doSpexareAndTypeExist(spexareId, typeId) && doesMembershipExist(id)) {
             typeRepository
                     .findById(typeId)
@@ -248,6 +253,15 @@ public class MembershipService {
                     );
         } else {
             throw new ResourcesNotFoundException(List.of(Spexare.class, Type.class, Membership.class), spexareId, typeId, id);
+        }
+    }
+
+    /**
+     * Internal memberships (FGV) are Medlemskap's and written only by the sync.
+     */
+    private void refuseInternal(final String typeId) {
+        if (medlemskap.isInternal(typeId)) {
+            throw new BadRequestException("Memberships of type %s are kept in Medlemskap and cannot be changed here".formatted(typeId));
         }
     }
 

@@ -49,7 +49,7 @@ spexregister:
       client-id: fgv-spexregister
       client-secret: ip8dFYgp03sVytrrEeXgwHIgHAMtE350
   security:
-    authorized-parties: fgv-spexregister,fgv-revival-service,fgv-spexipedia-service
+    authorized-parties: fgv-spexregister,fgv-revival-service,fgv-spexipedia-service,fgv-membership-service
   mcp:
     authorized-parties: fgv-spexregister-mcp,fgv-spexregister-mcp-unbound
   impex:
@@ -64,3 +64,12 @@ spexregister.spexipedia:
   enabled: false
   graphql-url: http://localhost:1/api/graphql
   web-url: https://spexipedia.test
+
+# FGV memberships come from Medlemskap: tests make them through the sync's own apply step, and the sync tests stub the
+# feed; no scheduled pulls, and nobody is told about deleted spexare
+spexregister.medlemskap:
+  enabled: false
+  graphql-url: http://localhost:1/api/graphql
+  api-url: http://localhost:1
+  web-url: https://membership.test
+  internal-types: FGV

@@ -499,6 +499,7 @@ query spexarePaged ($first: Int = 10, $filter: String = "") {
                 memberships {
                     id
                     year
+                    lifetime
                     type {
                         id
                         label

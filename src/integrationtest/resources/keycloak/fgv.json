@@ -359,6 +359,15 @@
           "clientRole": true,
           "containerId": "90e179a1-7165-4088-a147-9a455f8148ac",
           "attributes": {}
+        },
+        {
+          "id": "63fd2b8c-d4c5-49c8-b4d8-55b81cb0705d",
+          "name": "MEMBERSHIP",
+          "description": "",
+          "composite": false,
+          "clientRole": true,
+          "containerId": "90e179a1-7165-4088-a147-9a455f8148ac",
+          "attributes": {}
         }
       ],
       "admin-cli": [],
@@ -817,7 +826,8 @@
       ],
       "fgv-archive-mcp": [],
       "fgv-spexify-mcp": [],
-      "fgv-spexflix-mcp": []
+      "fgv-spexflix-mcp": [],
+      "fgv-membership-service": []
     }
   },
   "groups": [
@@ -1156,6 +1166,29 @@
       },
       "notBefore": 0,
       "groups": []
+    },
+    {
+      "id": "cc031891-1c35-49de-9dd1-472897c09621",
+      "createdTimestamp": 1794560400000,
+      "username": "service-account-fgv-membership-service",
+      "enabled": true,
+      "totp": false,
+      "emailVerified": false,
+      "serviceAccountClientId": "fgv-membership-service",
+      "credentials": [],
+      "disableableCredentialTypes": [],
+      "requiredActions": [],
+      "realmRoles": [
+        "default-roles-fgv"
+      ],
+      "clientRoles": {
+        "fgv-spexregister": [
+          "MEMBERSHIP",
+          "NOTIFY"
+        ]
+      },
+      "notBefore": 0,
+      "groups": []
     }
   ],
   "scopeMappings": [
@@ -1265,6 +1298,13 @@
         "client": "fgv-spexipedia",
         "roles": [
           "USER"
+        ]
+      },
+      {
+        "client": "fgv-membership-service",
+        "roles": [
+          "MEMBERSHIP",
+          "NOTIFY"
         ]
       }
     ],
@@ -3252,6 +3292,46 @@
       "optionalClientScopes": [
         "offline_access"
       ]
+    },
+    {
+      "id": "dfce2e51-718d-4c62-a617-8c58f1bf2851",
+      "clientId": "fgv-membership-service",
+      "name": "Medlemskap service account",
+      "description": "",
+      "rootUrl": "",
+      "adminUrl": "",
+      "baseUrl": "",
+      "surrogateAuthRequired": false,
+      "enabled": true,
+      "alwaysDisplayInConsole": false,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "MembershipServiceTestSecret0123456",
+      "redirectUris": [],
+      "webOrigins": [],
+      "notBefore": 0,
+      "bearerOnly": false,
+      "consentRequired": false,
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": true,
+      "publicClient": false,
+      "frontchannelLogout": false,
+      "protocol": "openid-connect",
+      "attributes": {
+        "oidc.ciba.grant.enabled": "false",
+        "oauth2.device.authorization.grant.enabled": "false",
+        "backchannel.logout.session.required": "true",
+        "backchannel.logout.revoke.offline.tokens": "false",
+        "client.secret.creation.time": "1794560400"
+      },
+      "authenticationFlowBindingOverrides": {},
+      "fullScopeAllowed": false,
+      "nodeReRegistrationTimeout": -1,
+      "defaultClientScopes": [
+        "roles"
+      ],
+      "optionalClientScopes": []
     }
   ],
   "clientScopes": [

@@ -26,8 +26,8 @@ import nu.fgv.register.server.spexare.SpexareService;
 import nu.fgv.register.server.spexare.activity.ActivityDto;
 import nu.fgv.register.server.spexare.activity.ActivityService;
 import nu.fgv.register.server.spexare.activity.spex.SpexActivityService;
-import nu.fgv.register.server.spexare.membership.MembershipCreateDto;
-import nu.fgv.register.server.spexare.membership.MembershipService;
+import nu.fgv.register.server.sync.MembershipFeedChange;
+import nu.fgv.register.server.sync.MembershipSyncService;
 import nu.fgv.register.server.tag.TagCreateDto;
 import nu.fgv.register.server.tag.TagDto;
 import nu.fgv.register.server.tag.TagService;
@@ -88,7 +88,7 @@ class RevivalRoleIntegrationTest extends AbstractGraphqlIntegrationTest {
     private final SpexareService spexareService;
     private final ActivityService activityService;
     private final SpexActivityService spexActivityService;
-    private final MembershipService membershipService;
+    private final MembershipSyncService membershipSyncService;
     private final TagService tagService;
     @Value("${spring.security.oauth2.resourceserver.jwt.issuer-uri}")
     private String issuerUri;
@@ -105,7 +105,7 @@ class RevivalRoleIntegrationTest extends AbstractGraphqlIntegrationTest {
                                       final SpexareService spexareService,
                                       final ActivityService activityService,
                                       final SpexActivityService spexActivityService,
-                                      final MembershipService membershipService,
+                                      final MembershipSyncService membershipSyncService,
                                       final TagService tagService) {
         super(jdbcClient, keycloakAdminClient, keycloakClientId, objectMapper);
         this.spexService = spexService;
@@ -114,7 +114,7 @@ class RevivalRoleIntegrationTest extends AbstractGraphqlIntegrationTest {
         this.spexareService = spexareService;
         this.activityService = activityService;
         this.spexActivityService = spexActivityService;
-        this.membershipService = membershipService;
+        this.membershipSyncService = membershipSyncService;
         this.tagService = tagService;
     }
 
@@ -462,12 +462,13 @@ class RevivalRoleIntegrationTest extends AbstractGraphqlIntegrationTest {
                 .errors()
                 .verify();
 
+        // FGV memberships are Medlemskap's: Nyuppsättning pays through it, and Spexregister refuses to create them
         revivalTester(ACTING_PERSON_HEADER)
                 .document("mutation membershipCreate($spexareId: ID!) { membershipCreate(spexareId: $spexareId, typeId: \"FGV\", input: { year: \"2030\" }) { id } }")
                 .variable("spexareId", spexareId)
                 .execute()
                 .errors()
-                .verify();
+                .satisfy(errors -> assertThat(errors).hasSize(1));
 
         // The integration test profile replaces the auditor of created_by and last_modified_by (see JpaConfig), so the
         // revision, which always uses Auditor, is what shows who acted here; AuditorTest covers created_by.
@@ -477,15 +478,12 @@ class RevivalRoleIntegrationTest extends AbstractGraphqlIntegrationTest {
 
         assertThat(modifiedBy).isEqualTo(REVIVAL_CLIENT_ID + " on behalf of " + ACTING_PERSON);
         assertThat(socialSecurityNumberStored).isNull();
-        assertThat(jdbcClient.sql("SELECT r.modified_by FROM revinfo r JOIN membership_audit a ON a.rev = r.id WHERE a.spexare_id = (SELECT id FROM spexare WHERE uuid = :id)")
-                .param("id", spexareId.toString()).query(String.class).single())
-                .isEqualTo(modifiedBy);
     }
 
     @Test
     void should_refuse_memberships_and_filtering_on_them() {
         final SpexareDto spexare = asAdmin(() -> createSpexare("Hilda", true));
-        asAdmin(() -> membershipService.create(spexare.getId(), "FGV", MembershipCreateDto.builder().year("2020").build()));
+        membershipSyncService.applyAll(List.of(new MembershipFeedChange("1", UUID.randomUUID(), MembershipFeedChange.UPSERT, spexare.getId(), "FGV", 2020, false)));
 
         for (final String document : List.of(
                 "query spexare($id: ID!) { spexare(id: $id) { id memberships { id } } }",

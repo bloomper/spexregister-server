@@ -38,6 +38,9 @@ public interface MembershipRepository extends JpaRepository<Membership, Long>, J
      */
     Optional<Membership> findByUuid(UUID uuid);
 
+    Optional<Membership> findBySpexareAndTypeAndYear(nu.fgv.register.server.spexare.Spexare spexare,
+                                                     nu.fgv.register.server.settings.Type type, String year);
+
     /**
      * @param uuids external ids
      * @return those that exist
