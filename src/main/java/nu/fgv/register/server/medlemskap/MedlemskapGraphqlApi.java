@@ -16,7 +16,12 @@
 
 package nu.fgv.register.server.medlemskap;
 
+import nu.fgv.register.server.spexare.SpexareCreateDto;
 import nu.fgv.register.server.spexare.SpexareRepository;
+import nu.fgv.register.server.spexare.SpexareService;
+import nu.fgv.register.server.spexare.address.AddressCreateDto;
+import nu.fgv.register.server.spexare.address.AddressService;
+import nu.fgv.register.server.util.security.SecurityUtil;
 import nu.fgv.register.server.user.UserRepository;
 import nu.fgv.register.server.util.error.ResourceAlreadyExistsException;
 import nu.fgv.register.server.util.error.ResourceNotFoundException;
@@ -39,7 +44,8 @@ import java.util.UUID;
  * The {@code MEMBERSHIP} role (spexregister-spec, docs/base-data-and-memberships.md, section 6): Medlemskap's service
  * account reads spexare by id or name, finds and sets the spexare a user is linked to, and reads FGV memberships. It
  * cannot read the personal identity number, other addresses, consents or tags, and cannot change or delete anything but
- * the user's link. Creating spexare for accepted applications is added with applications (Medlemskap's M5).
+ * the user's link, and it can create a spexare that is not in the register yet (a new member who paid online, and later
+ * an accepted application).
  *
  * @author Anders Jacobsson
  * @since 2.0
@@ -60,11 +66,16 @@ public class MedlemskapGraphqlApi {
     private final JdbcClient jdbc;
     private final UserRepository userRepository;
     private final SpexareRepository spexareRepository;
+    private final SpexareService spexareService;
+    private final AddressService addressService;
 
-    public MedlemskapGraphqlApi(final JdbcClient jdbc, final UserRepository userRepository, final SpexareRepository spexareRepository) {
+    public MedlemskapGraphqlApi(final JdbcClient jdbc, final UserRepository userRepository, final SpexareRepository spexareRepository,
+                                final SpexareService spexareService, final AddressService addressService) {
         this.jdbc = jdbc;
         this.userRepository = userRepository;
         this.spexareRepository = spexareRepository;
+        this.spexareService = spexareService;
+        this.addressService = addressService;
     }
 
     @QueryMapping
@@ -102,6 +113,41 @@ public class MedlemskapGraphqlApi {
         }
         sql.append(" ORDER BY s.last_name, s.first_name LIMIT ").append(Math.clamp(first == null ? 25 : first, 1, MAX_SEARCH));
         return jdbc.sql(sql.toString()).params(params).query((rs, _) -> spexare(rs)).list();
+    }
+
+    @QueryMapping
+    @Transactional(readOnly = true)
+    public @Nullable Spexare medlemskapSpexareByEmail(@Argument final String email) {
+        final List<String> found = jdbc.sql("SELECT DISTINCT s.uuid FROM spexare s JOIN address a ON a.spexare_id = s.id WHERE LOWER(a.email_address) = :email")
+                .param("email", email.strip().toLowerCase(Locale.ROOT)).query(String.class).list();
+
+        if (found.size() > 1) {
+            throw new IllegalStateException("%d spexare have the email address %s".formatted(found.size(), email));
+        }
+        return found.isEmpty() ? null : medlemskapSpexareByIds(List.of(UUID.fromString(found.getFirst()))).getFirst();
+    }
+
+    @MutationMapping
+    @Transactional
+    public Spexare medlemskapSpexareCreate(@Argument final SpexareInput input) {
+        final Spexare existing = medlemskapSpexareByEmail(input.email());
+
+        if (existing != null) {
+            return existing;
+        }
+
+        final UUID[] created = new UUID[1];
+
+        // As the register's own change, so that the history says Medlemskap made it
+        SecurityUtil.runAs("medlemskap", () -> {
+            created[0] = spexareService.create(SpexareCreateDto.builder().firstName(input.firstName().strip()).lastName(input.lastName().strip())
+                    .deceased(false).published(false).build()).getId();
+            addressService.create(created[0], "HOME", AddressCreateDto.builder().emailAddress(input.email().strip()).build());
+        });
+        return medlemskapSpexareByIds(List.of(created[0])).getFirst();
+    }
+
+    public record SpexareInput(String firstName, String lastName, String email) {
     }
 
     @QueryMapping

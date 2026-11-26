@@ -6,6 +6,8 @@ extend type Query {
     medlemskapSpexareByIds(ids: [ID!]!): [MedlemskapSpexare!]!
     "MEMBERSHIP. Spexare whose name or nickname contains every word. At most 50."
     medlemskapSpexareSearch(q: String!, first: Int = 25): [MedlemskapSpexare!]!
+    "MEMBERSHIP. The spexare that has this email address on an address (case ignored), or null. Fails when several do, so that nobody is created twice."
+    medlemskapSpexareByEmail(email: String!): MedlemskapSpexare
     "MEMBERSHIP. The spexare a Keycloak user is linked to, or null."
     medlemskapSpexareForUser(userId: ID!): MedlemskapSpexare
     "MEMBERSHIP. FGV memberships as Spexregister has them, oldest spexare first, for checking that the copy and Medlemskap agree."
@@ -13,8 +15,19 @@ extend type Query {
 }
 
 extend type Mutation {
+    """
+    MEMBERSHIP. Creates a spexare for someone who is not in the register, e.g. a new member who paid online, with the email
+    address on a home address; returns the spexare that has the address already, if there is one. Not published.
+    """
+    medlemskapSpexareCreate(input: MedlemskapSpexareInput!): MedlemskapSpexare!
     "MEMBERSHIP. Links a Keycloak user to a spexare that nobody else is linked to; replaces the user's earlier link."
     medlemskapLinkUser(userId: ID!, spexareId: ID!): MedlemskapSpexare!
+}
+
+input MedlemskapSpexareInput {
+    firstName: String!
+    lastName: String!
+    email: String!
 }
 
 type MedlemskapSpexare {

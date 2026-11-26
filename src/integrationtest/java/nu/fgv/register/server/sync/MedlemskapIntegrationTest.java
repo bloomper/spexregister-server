@@ -164,6 +164,36 @@ class MedlemskapIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    void should_find_a_spexare_by_email_and_create_one_for_someone_new_once() {
+        final String token = membershipToken();
+        final String create = "mutation { medlemskapSpexareCreate(input: { firstName: \"Ny\", lastName: \"Medlem\", email: \"Ny.Medlem@Example.org\" }) { id firstName email } }";
+
+        graphQl(token).document("{ medlemskapSpexareByEmail(email: \"ny.medlem@example.org\") { id } }").execute().errors().verify()
+                .path("medlemskapSpexareByEmail").valueIsNull();
+
+        final String id = graphQl(token).document(create).execute().errors().verify()
+                .path("medlemskapSpexareCreate.email").entity(String.class).isEqualTo("Ny.Medlem@Example.org")
+                .path("medlemskapSpexareCreate.id").entity(String.class).get();
+
+        graphQl(token).document("{ medlemskapSpexareByEmail(email: \"ny.medlem@example.org\") { id } }").execute().errors().verify()
+                .path("medlemskapSpexareByEmail.id").entity(String.class).isEqualTo(id);
+        graphQl(token).document(create).execute().errors().verify().path("medlemskapSpexareCreate.id").entity(String.class).isEqualTo(id);
+
+        assertThat(jdbcClient.sql("SELECT COUNT(*) FROM spexare").query(Long.class).single()).isEqualTo(1);
+        assertThat(jdbcClient.sql("SELECT published FROM spexare WHERE uuid = :u").param("u", id).query(Boolean.class).single()).isFalse();
+        assertThat(jdbcClient.sql("SELECT created_by FROM spexare WHERE uuid = :u").param("u", id).query(String.class).single()).isNotBlank();
+    }
+
+    @Test
+    void should_refuse_to_guess_when_two_spexare_share_an_email_address() {
+        spexare("Greta", "Garbo", "same@example.org");
+        spexare("Gerda", "Garbo", "same@example.org");
+
+        graphQl(membershipToken()).document("{ medlemskapSpexareByEmail(email: \"same@example.org\") { id } }").execute()
+                .errors().satisfy(errors -> assertThat(errors).isNotEmpty());
+    }
+
+    @Test
     void should_keep_a_deleted_spexare_to_tell_medlemskap_about_until_it_is_sent() {
         final UUID spexare = spexare("Greta", "Garbo", null);
 
