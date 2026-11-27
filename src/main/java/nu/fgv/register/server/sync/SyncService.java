@@ -507,7 +507,8 @@ public class SyncService {
                 .single();
     }
 
-    public record Status(String name, @Nullable String cursor, @Nullable Instant lastPulledAt, @Nullable Instant lastSuccess,
+    public record Status(String name, @Nullable String cursor, @Nullable Instant lastPulledAt,
+                         @Nullable Instant lastSuccess,
                          @Nullable String lastError, long applied, boolean stale, List<Skipped> skipped) {
     }
 
