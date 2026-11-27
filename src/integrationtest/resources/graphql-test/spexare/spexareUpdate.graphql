@@ -496,6 +496,7 @@ mutation spexareUpdate ($id: ID!, $firstName: String!, $lastName: String!, $nick
         memberships {
             id
             year
+            lifetime
             type {
                 id
                 label

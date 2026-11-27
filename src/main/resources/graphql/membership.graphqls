@@ -1,17 +1,19 @@
 extend type Mutation {
     """
-    Every role, with WRITE on the spexare. typeId is a MEMBERSHIP type such as FGV; fails when the spexare already is a
-    member that year.
+    Every role, with WRITE on the spexare. typeId is an external MEMBERSHIP type such as CING; internal types such as FGV
+    are refused, and the spexare cannot be a member twice in a year.
     """
     membershipCreate(spexareId: ID!, typeId: ID!, input: MembershipCreate!): Membership
     "ADMIN, EDITOR or USER with WRITE on the spexare."
     membershipDelete(spexareId: ID!, typeId: ID!, id: ID!): Void
 }
 
-"Membership of an association in one year."
+"Membership of an association in one year. Internal memberships (FGV) are a copy of Medlemskap's and cannot be changed here."
 type Membership {
     id: ID!
     year: Year!
+    "A life membership counts in year and every year after it."
+    lifetime: Boolean!
     type: Type!
     createdBy: String!
     createdAt: Instant!
@@ -32,4 +34,15 @@ type MembershipEdge {
 
 input MembershipCreate {
     year: Year!
+}
+
+"Whose memberships of a type are: Medlemskap's (a read-only copy here) or kept here."
+enum MembershipKind {
+    INTERNAL
+    EXTERNAL
+}
+
+extend type Type {
+    "For a MEMBERSHIP type: INTERNAL when Medlemskap keeps it, EXTERNAL when it is kept here. Null for other types."
+    membershipKind: MembershipKind
 }

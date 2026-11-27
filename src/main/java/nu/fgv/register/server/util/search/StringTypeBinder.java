@@ -23,6 +23,8 @@ import org.hibernate.search.mapper.pojo.bridge.TypeBridge;
 import org.hibernate.search.mapper.pojo.bridge.binding.TypeBindingContext;
 import org.hibernate.search.mapper.pojo.bridge.runtime.TypeBridgeWriteContext;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
@@ -39,14 +41,26 @@ import static nu.fgv.register.server.util.Constants.AGGREGATION_COMPOSITE_DELIMI
 public class StringTypeBinder<T> extends AbstractHierarchicalTypeBinder {
     private final Class<T> bridgedType;
     private final Function<T, Type> typeExtractor;
-    private final Function<T, String> valueExtractor;
+    private final Function<T, Collection<String>> valuesExtractor;
     private final String valuePropertyName;
     private final boolean includeGroupLabel;
 
     public StringTypeBinder(final Class<T> bridgedType, final Function<T, Type> typeExtractor, final Function<T, String> valueExtractor, final String valuePropertyName, final boolean includeGroupLabel) {
         this.bridgedType = bridgedType;
         this.typeExtractor = typeExtractor;
-        this.valueExtractor = valueExtractor;
+        this.valuesExtractor = entity -> List.of(valueExtractor.apply(entity));
+        this.valuePropertyName = valuePropertyName;
+        this.includeGroupLabel = includeGroupLabel;
+    }
+
+    /**
+     * For an entity that has several values, such as a life membership that counts in every year from its first.
+     */
+    public StringTypeBinder(final Class<T> bridgedType, final Function<T, Type> typeExtractor, final String valuePropertyName,
+                            final boolean includeGroupLabel, final Function<T, Collection<String>> valuesExtractor) {
+        this.bridgedType = bridgedType;
+        this.typeExtractor = typeExtractor;
+        this.valuesExtractor = valuesExtractor;
         this.valuePropertyName = valuePropertyName;
         this.includeGroupLabel = includeGroupLabel;
     }
@@ -56,33 +70,42 @@ public class StringTypeBinder<T> extends AbstractHierarchicalTypeBinder {
         context.dependencies()
                 .use("type")
                 .use(valuePropertyName);
-        context.bridge(bridgedType, new Bridge<>(bindFields(context), typeExtractor, valueExtractor, includeGroupLabel));
+        extraDependencies(context);
+        context.bridge(bridgedType, new Bridge<>(bindFields(context), typeExtractor, valuesExtractor, includeGroupLabel));
+    }
+
+    /**
+     * Properties besides the type and the value that the indexed values depend on.
+     */
+    protected void extraDependencies(final TypeBindingContext context) {
+        // None by default
     }
 
     private record Bridge<T>(
             Map<String, IndexFieldReference<String>> fieldReferences,
             Function<T, Type> typeExtractor,
-            Function<T, String> valueExtractor,
+            Function<T, Collection<String>> valuesExtractor,
             boolean includeGroupLabel
     ) implements TypeBridge<T> {
         @Override
         public void write(final DocumentElement target, final T bridgedElement, final TypeBridgeWriteContext context) {
             final Type typeObj = typeExtractor.apply(bridgedElement);
-            final String value = valueExtractor.apply(bridgedElement);
 
-            final String id = "%s:%s".formatted(typeObj.getId().toLowerCase(), value);
+            for (final String value : valuesExtractor.apply(bridgedElement)) {
+                final String id = "%s:%s".formatted(typeObj.getId().toLowerCase(), value);
 
-            typeObj.getLabels().forEach((lang, typeLabel) -> {
-                final IndexFieldReference<String> fieldReference = fieldReferences.get(lang);
+                typeObj.getLabels().forEach((lang, typeLabel) -> {
+                    final IndexFieldReference<String> fieldReference = fieldReferences.get(lang);
 
-                if (fieldReference != null) {
-                    final String displayValue = includeGroupLabel ?
-                            typeLabel + AGGREGATION_COMPOSITE_DELIMITER + value :
-                            value;
+                    if (fieldReference != null) {
+                        final String displayValue = includeGroupLabel ?
+                                typeLabel + AGGREGATION_COMPOSITE_DELIMITER + value :
+                                value;
 
-                    target.addValue(fieldReference, id + AGGREGATION_COMPOSITE_DELIMITER + displayValue);
-                }
-            });
+                        target.addValue(fieldReference, id + AGGREGATION_COMPOSITE_DELIMITER + displayValue);
+                    }
+                });
+            }
         }
     }
 }

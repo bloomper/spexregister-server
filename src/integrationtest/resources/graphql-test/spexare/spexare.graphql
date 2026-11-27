@@ -474,6 +474,7 @@ query spexare ($id: ID!, $first: Int = 10) {
                 node {
                     id
                     year
+                    lifetime
                     type {
                         id
                         label
@@ -496,6 +497,7 @@ query spexare ($id: ID!, $first: Int = 10) {
         memberships {
             id
             year
+            lifetime
             type {
                 id
                 label

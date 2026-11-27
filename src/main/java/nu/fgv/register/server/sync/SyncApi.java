@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * Spexipedia tells Spexregister that its change feed has something new; the call only starts a pull and carries no
+ * Spexipedia or Medlemskap tells Spexregister that its change feed has something new; the call starts a pull of both feeds and carries no
  * data. Requires {@code NOTIFY} on {@code fgv-spexregister}.
  *
  * @author Anders Jacobsson
@@ -32,15 +32,18 @@ import org.springframework.web.bind.annotation.RestController;
 public class SyncApi {
 
     private final SyncService service;
+    private final MembershipSyncService memberships;
 
-    public SyncApi(final SyncService service) {
+    public SyncApi(final SyncService service, final MembershipSyncService memberships) {
         this.service = service;
+        this.memberships = memberships;
     }
 
     @PostMapping("/api/sync/notify")
     @PreAuthorize("hasRole('fgv-spexregister_NOTIFY')")
     public ResponseEntity<Void> notifyChanged() {
         service.pullSoon();
+        memberships.pullSoon();
         return ResponseEntity.accepted().build();
     }
 }

@@ -44,7 +44,7 @@ public abstract class AbstractHierarchicalTypeBinder implements TypeBinder {
             final Map<String, IndexFieldReference<String>> fieldReferences = new HashMap<>();
 
             for (final String lang : config.get().getLanguages()) {
-                fieldReferences.put(lang, root.field(AGGREGATION_HIERARCHICAL_MARKER + lang, f -> f.asString().aggregable(Aggregable.YES)).toReference());
+                fieldReferences.put(lang, root.field(AGGREGATION_HIERARCHICAL_MARKER + lang, f -> f.asString().aggregable(Aggregable.YES)).multiValued().toReference());
             }
             return fieldReferences;
         }

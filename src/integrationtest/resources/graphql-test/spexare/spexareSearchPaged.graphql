@@ -499,6 +499,7 @@ query spexareSearchPaged ($q: String!, $first: Int, $after: String, $last: Int, 
                 memberships {
                     id
                     year
+                    lifetime
                     type {
                         id
                         label

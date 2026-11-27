@@ -37,19 +37,20 @@ type MaintenanceJobStatus {
 }
 
 extend type Query {
-    "ADMIN. Where the sync of base data from Spexipedia has got to."
+    "ADMIN. Where the sync of base data from Spexipedia and of FGV memberships from Medlemskap has got to."
     syncSources: [SyncSource!]!
 }
 
 extend type Mutation {
     """
-    ADMIN. Pulls Spexipedia's change feed now and waits for it; with full, from the start, reporting the records here that
-    Spexipedia no longer lists (they are never deleted). Null when a pull is already running.
+    ADMIN. Pulls a source's change feed now (source spexipedia, the default, or medlemskap) and waits for it; with full,
+    from the start, reporting the records here that Spexipedia no longer lists (they are never deleted). Medlemskap's
+    full pull applies everything again. Null when a pull is already running.
     """
-    syncRun(full: Boolean = false): SyncResult
+    syncRun(source: String = "spexipedia", full: Boolean = false): SyncResult
 }
 
-"A source of copied data: today Spexipedia, for spex, revivals, categories, tasks and characters."
+"A source of copied data: Spexipedia, for spex, revivals, categories, tasks and characters, and Medlemskap, for FGV memberships."
 type SyncSource {
     name: String!
     "How far the copy has read the source's change feed."

@@ -35,20 +35,25 @@ import java.util.List;
 public class SyncGraphqlApi {
 
     private final SyncService service;
+    private final MembershipSyncService memberships;
 
-    public SyncGraphqlApi(final SyncService service) {
+    public SyncGraphqlApi(final SyncService service, final MembershipSyncService memberships) {
         this.service = service;
+        this.memberships = memberships;
     }
 
     @QueryMapping
     @RequiresAdmin
     public List<SyncService.Status> syncSources() {
-        return List.of(service.status());
+        return List.of(service.status(), memberships.status());
     }
 
     @MutationMapping
     @RequiresAdmin
-    public SyncService.@Nullable Result syncRun(@Argument final @Nullable Boolean full) {
+    public SyncService.@Nullable Result syncRun(@Argument final @Nullable String source, @Argument final @Nullable Boolean full) {
+        if (MembershipSyncService.SOURCE.equals(source)) {
+            return memberships.pull(Boolean.TRUE.equals(full));
+        }
         return service.pull(Boolean.TRUE.equals(full));
     }
 }
