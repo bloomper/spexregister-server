@@ -63,6 +63,6 @@ class MessagesTest {
         source.setDefaultEncoding("UTF-8");
 
         assertThat(source.getMessage("impex.import.validation.columnMismatch", new Object[]{2, "Name"}, Locale.ENGLISH))
-            .isEqualTo("Expected column header 2 to be 'Name'");
+                .isEqualTo("Expected column header 2 to be 'Name'");
     }
 }

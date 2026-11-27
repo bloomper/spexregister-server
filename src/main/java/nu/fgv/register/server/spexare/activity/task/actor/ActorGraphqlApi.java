@@ -62,7 +62,7 @@ public class ActorGraphqlApi {
     @MutationMapping("actorCreate")
     @RequiresAdminOrEditorOrUserOrRevival
     public DataFetcherResult<ActorDto> create(@Argument final UUID spexareId, @Argument final UUID activityId, @Argument final UUID taskActivityId, @Argument final String vocalId, @Valid @Argument final ActorCreateDto input,
-                                                 @Argument("characterId") final ArgumentValue<UUID> character) {
+                                              @Argument("characterId") final ArgumentValue<UUID> character) {
         final ActorDto actor = service.create(spexareId, activityId, taskActivityId, vocalId, input);
 
         if (character.isPresent()) {
@@ -82,7 +82,7 @@ public class ActorGraphqlApi {
     @MutationMapping("actorUpdate")
     @RequiresAdminOrEditorOrUser
     public DataFetcherResult<ActorDto> update(@Argument final UUID spexareId, @Argument final UUID activityId, @Argument final UUID taskActivityId, @Argument final String vocalId, @Valid @Argument final ActorUpdateDto input,
-                                                 @Argument("characterId") final ArgumentValue<UUID> character) {
+                                              @Argument("characterId") final ArgumentValue<UUID> character) {
         final ActorDto actor = service.update(spexareId, activityId, taskActivityId, vocalId, input.id(), input);
 
         if (character.isPresent()) {
