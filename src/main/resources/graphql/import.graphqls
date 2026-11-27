@@ -1,0 +1,157 @@
+# The import API (spexregister-spec, docs/migration.md, 3): spexregister-migration's service account (IMPORT) builds the
+# first database through it. Fields are plain text where the register checks them, so that a wrong value fails its
+# record, not the whole batch.
+
+extend type Mutation {
+    """
+    IMPORT. Imports records by source key, kind by kind in the order of the input's fields: a new key creates, a known
+    one updates what it made unless the content is the same (UNCHANGED) or someone has changed it since (KEPT). Each
+    record is its own transaction; with dryRun everything is rolled back. At most 500 records.
+    """
+    importBatch(input: ImportBatchInput!, dryRun: Boolean! = false): ImportBatchResult!
+    "IMPORT. Removes what was imported under the source prefix and is still unchanged; returns how many."
+    importForget(sourcePrefix: String!): Int!
+}
+
+input ImportBatchInput {
+    tags: [ImportTagInput!]
+    spexare: [ImportSpexareInput!]
+    partners: [ImportPartnerInput!]
+    activities: [ImportActivityInput!]
+    news: [ImportNewsInput!]
+    users: [ImportUserInput!]
+}
+
+input ImportTagInput {
+    sourceKey: String!
+    name: String!
+}
+
+"A spexare with what is part of it; an update replaces the parts. FGV memberships are refused: they are Medlemskap's."
+input ImportSpexareInput {
+    sourceKey: String!
+    firstName: String!
+    lastName: String!
+    nickName: String
+    "YYYYMMDD or YYYYMMDD-NNNN, in clear; the register encrypts it."
+    socialSecurityNumber: String
+    deceased: Boolean!
+    published: Boolean!
+    graduation: String
+    comment: String
+    "A file uploaded to /api/import/files/{sha256}: PNG, JPEG, GIF or SVG."
+    image: ImportFileInput
+    addresses: [ImportAddressInput!]
+    consents: [ImportTypeValueInput!]
+    toggles: [ImportTypeValueInput!]
+    "Source keys of tags."
+    tags: [String!]
+    "External memberships only (e.g. CING)."
+    memberships: [ImportMembershipInput!]
+}
+
+input ImportFileInput {
+    sha256: String!
+    name: String
+}
+
+input ImportAddressInput {
+    "An address type, e.g. HOME."
+    type: String!
+    streetAddress: String
+    postalCode: String
+    city: String
+    "ISO 3166-1 alpha-2."
+    country: String
+    phone: String
+    phoneMobile: String
+    emailAddress: String
+}
+
+input ImportTypeValueInput {
+    type: String!
+    value: Boolean!
+}
+
+input ImportMembershipInput {
+    type: String!
+    year: String!
+}
+
+"Two spexare, by source key, who are each other's partners."
+input ImportPartnerInput {
+    sourceKey: String!
+    spexare: String!
+    partner: String!
+}
+
+"""
+One task of one spexare in one spex, or the spex alone without taskId. Records of the same spexare and spex share an
+activity, and of the same task a task activity. Actors are replaced when given and left alone when not.
+"""
+input ImportActivityInput {
+    sourceKey: String!
+    "The spexare's source key."
+    spexare: String!
+    "Spexipedia's id of the spex or revival."
+    spexId: ID!
+    "Spexipedia's id of the task."
+    taskId: ID
+    actors: [ImportActorInput!]
+}
+
+input ImportActorInput {
+    "A vocal type, e.g. B1."
+    vocal: String!
+    role: String
+    "Spexipedia's id of the character."
+    characterId: ID
+}
+
+input ImportNewsInput {
+    sourceKey: String!
+    subject: String!
+    text: String!
+    visibleFrom: Date
+    visibleTo: Date
+}
+
+"A Keycloak account, made by the migration, as a user of the register."
+input ImportUserInput {
+    sourceKey: String!
+    "The account's subject."
+    externalId: String!
+    "ACTIVE or INACTIVE."
+    state: String!
+    "The spexare's source key."
+    spexare: String
+}
+
+type ImportBatchResult {
+    dryRun: Boolean!
+    items: [ImportBatchItem!]!
+    created: Int!
+    updated: Int!
+    unchanged: Int!
+    kept: Int!
+    failed: Int!
+}
+
+type ImportBatchItem {
+    kind: String!
+    sourceKey: String!
+    id: ID
+    outcome: ImportBatchOutcome!
+    "In this language (sv or en); the request's when not given."
+    message(locale: String): String
+    "In this language (sv or en); the request's when not given."
+    warnings(locale: String): [String!]!
+}
+
+enum ImportBatchOutcome {
+    CREATED
+    UPDATED
+    UNCHANGED
+    KEPT
+    FAILED
+}
